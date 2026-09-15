@@ -96,6 +96,11 @@ const defaultDispatcherAccounts: UserAccount[] = [
 ];
 
 const accountsStorageKey = 'moscollector-dispatcher-accounts';
+const deploymentBasePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
+function deploymentPath(path: string) {
+  return `${deploymentBasePath}${path}`;
+}
 
 function loadDispatcherAccounts() {
   try {
@@ -514,7 +519,8 @@ export default function MoscollectorApp() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [toast, setToast] = useState('');
   useEffect(() => {
-    const path = window.location.pathname;
+    const path =
+      window.location.pathname.slice(deploymentBasePath.length) || '/';
     if (path === '/login' || path === '/admin') setCurrentUser(null);
     const found = nav.find((item) => path.startsWith(`/${item.id}`));
     if (found) setSection(found.id);
@@ -526,7 +532,11 @@ export default function MoscollectorApp() {
     setSection(next);
     setDetail(id || null);
     setMenuOpen(false);
-    window.history.pushState({}, '', id ? `/${next}/${id}` : `/${next}`);
+    window.history.pushState(
+      {},
+      '',
+      deploymentPath(id ? `/${next}/${id}/` : `/${next}/`),
+    );
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const notify = (message: string) => {
@@ -539,7 +549,7 @@ export default function MoscollectorApp() {
         onLogin={(user) => {
           setCurrentUser(user);
           if (user.role === 'admin') {
-            window.history.pushState({}, '', '/admin');
+            window.history.pushState({}, '', deploymentPath('/admin/'));
           } else {
             go('dashboard');
           }
@@ -552,7 +562,7 @@ export default function MoscollectorApp() {
         user={currentUser}
         onLogout={() => {
           setCurrentUser(null);
-          window.history.pushState({}, '', '/login');
+          window.history.pushState({}, '', deploymentPath('/login/'));
         }}
       />
     );
@@ -593,7 +603,7 @@ export default function MoscollectorApp() {
           className="profile"
           onClick={() => {
             setCurrentUser(null);
-            window.history.pushState({}, '', '/login');
+            window.history.pushState({}, '', deploymentPath('/login/'));
           }}
         >
           <span className="avatar">
