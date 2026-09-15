@@ -800,6 +800,22 @@ td small {
   font-size: 9px;
   white-space: nowrap;
 }
+.status-success {
+  background: #dcfce7;
+  color: #15803d;
+}
+.status-warning {
+  background: #ffedd5;
+  color: #c2410c;
+}
+.status-monitoring {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+.status-neutral {
+  background: #eef2ff;
+  color: #4338ca;
+}
 .journal-comment {
   display: block;
   min-width: 180px;
@@ -2470,7 +2486,7 @@ td small {
 }
 .account-list article {
   display: grid;
-  grid-template-columns: auto 1fr auto auto;
+  grid-template-columns: auto 1fr auto auto auto;
   align-items: center;
   gap: 10px;
   padding: 11px;
@@ -2492,6 +2508,7 @@ td small {
   font-size: 10px;
   overflow-wrap: anywhere;
 }
+.edit-account,
 .delete-account {
   width: 34px;
   height: 34px;
@@ -2501,6 +2518,17 @@ td small {
   border-radius: 8px;
   background: #fff;
   color: var(--red);
+}
+.edit-account {
+  color: var(--primary);
+}
+.admin-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.admin-form-actions .primary-btn {
+  flex: 1;
 }
 @media (max-width: 760px) {
   .admin-grid {
@@ -2514,7 +2542,7 @@ td small {
     display: none;
   }
   .account-list article {
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto 1fr auto auto;
   }
   .account-list .status-badge {
     display: none;

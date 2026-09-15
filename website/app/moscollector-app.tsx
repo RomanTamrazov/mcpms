@@ -24,6 +24,7 @@ import {
   Map,
   Menu,
   MoreHorizontal,
+  Pencil,
   RefreshCcw,
   Search,
   Send,
@@ -96,6 +97,7 @@ const defaultDispatcherAccounts: UserAccount[] = [
 ];
 
 const accountsStorageKey = 'moscollector-dispatcher-accounts';
+const sessionStorageKey = 'moscollector-current-user';
 const deploymentBasePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 function deploymentPath(path: string) {
@@ -118,6 +120,27 @@ function storeDispatcherAccounts(accounts: UserAccount[]) {
     window.localStorage.setItem(accountsStorageKey, JSON.stringify(accounts));
   } catch {
     // Keep account management usable for the current session.
+  }
+}
+
+function storeCurrentUser(user: UserAccount | null) {
+  try {
+    if (user) window.localStorage.setItem(sessionStorageKey, user.id);
+    else window.localStorage.removeItem(sessionStorageKey);
+  } catch {
+    // Keep sign-in usable for the current session.
+  }
+}
+
+function loadCurrentUser() {
+  try {
+    const userId = window.localStorage.getItem(sessionStorageKey);
+    if (!userId) return null;
+    return [adminAccount, ...loadDispatcherAccounts()].find(
+      (account) => account.id === userId,
+    );
+  } catch {
+    return null;
   }
 }
 
@@ -295,6 +318,13 @@ function journalFact(decision: string) {
   return 'Не подтверждён';
 }
 
+function journalStatusClass(status: string) {
+  if (status === 'Закрыт') return 'status-success';
+  if (status === 'В работе') return 'status-warning';
+  if (status === 'Наблюдение') return 'status-monitoring';
+  return 'status-neutral';
+}
+
 function loadJournalEntries() {
   try {
     const stored = window.localStorage.getItem(journalStorageKey);
@@ -310,6 +340,7 @@ function loadJournalEntries() {
         decision: string;
         comment: string;
         savedAt?: string;
+        dispatcher?: string;
       };
       entries.push({
         predictionId: prediction.id,
@@ -326,7 +357,7 @@ function loadJournalEntries() {
         probability: `${prediction.probability}%`,
         fact: journalFact(decision.decision),
         decision: decision.decision,
-        dispatcher: 'А. Крылова',
+        dispatcher: decision.dispatcher || 'А. Крылова',
         comment: decision.comment || 'Комментарий не указан',
         status: journalStatus(decision.decision),
       });
@@ -521,7 +552,14 @@ export default function MoscollectorApp() {
   useEffect(() => {
     const path =
       window.location.pathname.slice(deploymentBasePath.length) || '/';
-    if (path === '/login' || path === '/admin') setCurrentUser(null);
+    if (path === '/login' || path === '/login/') {
+      setCurrentUser(null);
+    } else {
+      const storedUser = loadCurrentUser();
+      if (storedUser) setCurrentUser(storedUser);
+      if ((path === '/admin' || path === '/admin/') && !storedUser)
+        setCurrentUser(null);
+    }
     const found = nav.find((item) => path.startsWith(`/${item.id}`));
     if (found) setSection(found.id);
     const pieces = path.split('/').filter(Boolean);
@@ -548,6 +586,7 @@ export default function MoscollectorApp() {
       <Login
         onLogin={(user) => {
           setCurrentUser(user);
+          storeCurrentUser(user);
           if (user.role === 'admin') {
             window.history.pushState({}, '', deploymentPath('/admin/'));
           } else {
@@ -562,6 +601,7 @@ export default function MoscollectorApp() {
         user={currentUser}
         onLogout={() => {
           setCurrentUser(null);
+          storeCurrentUser(null);
           window.history.pushState({}, '', deploymentPath('/login/'));
         }}
       />
@@ -603,6 +643,7 @@ export default function MoscollectorApp() {
           className="profile"
           onClick={() => {
             setCurrentUser(null);
+            storeCurrentUser(null);
             window.history.pushState({}, '', deploymentPath('/login/'));
           }}
         >
@@ -623,15 +664,23 @@ export default function MoscollectorApp() {
       <main className="main">
         <Header
           section={section}
+          user={currentUser}
           onMenu={() => setMenuOpen(!menuOpen)}
           onNotify={notify}
         />
         <div className="content">
-          {section === 'dashboard' && <Dashboard go={go} notify={notify} />}
+          {section === 'dashboard' && (
+            <Dashboard go={go} notify={notify} user={currentUser} />
+          )}
           {section === 'map' && <MapPage go={go} notify={notify} />}
           {section === 'predictions' &&
             (detail ? (
-              <PredictionDetail id={detail} go={go} notify={notify} />
+              <PredictionDetail
+                id={detail}
+                go={go}
+                notify={notify}
+                dispatcher={currentUser}
+              />
             ) : (
               <Predictions go={go} notify={notify} />
             ))}
@@ -685,10 +734,12 @@ function NavButton({
 }
 function Header({
   section,
+  user,
   onMenu,
   onNotify,
 }: {
   section: Section;
+  user: UserAccount;
   onMenu: () => void;
   onNotify: (s: string) => void;
 }) {
@@ -720,9 +771,13 @@ function Header({
         </button>
         <button
           className="avatar top-avatar"
-          onClick={() => onNotify('Анна Крылова · Диспетчер')}
+          onClick={() => onNotify(`${user.name} · Диспетчер`)}
         >
-          АК
+          {user.name
+            .split(' ')
+            .map((part) => part[0])
+            .join('')
+            .slice(0, 2)}
         </button>
       </div>
     </header>
@@ -792,14 +847,16 @@ function PanelHead({
 function Dashboard({
   go,
   notify,
+  user,
 }: {
   go: (s: Section, id?: string) => void;
   notify: (s: string) => void;
+  user: UserAccount;
 }) {
   return (
     <>
       <PageHead
-        title="Доброе утро, Анна"
+        title={`Доброе утро, ${user.name.split(' ')[0]}`}
         subtitle="Оперативная обстановка на 15 сентября 2026, 10:00"
         action={
           <button
@@ -1365,10 +1422,12 @@ function PredictionDetail({
   id,
   go,
   notify,
+  dispatcher,
 }: {
   id: string;
   go: (s: Section, id?: string) => void;
   notify: (s: string) => void;
+  dispatcher: UserAccount;
 }) {
   const [decision, setDecision] = useState('');
   const [reason, setReason] = useState('');
@@ -1435,6 +1494,7 @@ function PredictionDetail({
           decision,
           comment: dispatcherComment,
           savedAt: new Date().toISOString(),
+          dispatcher: dispatcher.name,
         }),
       );
     } catch {
@@ -1453,7 +1513,7 @@ function PredictionDetail({
       probability: `${p.probability}%`,
       fact: journalFact(decision),
       decision,
-      dispatcher: 'А. Крылова',
+      dispatcher: dispatcher.name,
       comment: dispatcherComment || 'Комментарий не указан',
       status: journalStatus(decision),
     });
@@ -1871,7 +1931,11 @@ function Incidents({ notify }: { notify: (s: string) => void }) {
                   {r.map((c, j) => (
                     <td key={j}>
                       {j === 8 ? (
-                        <span className="status-badge">{c}</span>
+                        <span
+                          className={`status-badge ${journalStatusClass(c)}`}
+                        >
+                          {c}
+                        </span>
                       ) : j === 3 ? (
                         <strong>{c}</strong>
                       ) : j === 7 ? (
@@ -2621,35 +2685,62 @@ function AdminPanel({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => setAccounts(loadDispatcherAccounts()), []);
 
-  const createAccount = (event: FormEvent<HTMLFormElement>) => {
+  const saveAccount = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const normalizedEmail = email.trim().toLowerCase();
     if (
       normalizedEmail === adminAccount.email ||
       accounts.some(
-        (account) => account.email.toLowerCase() === normalizedEmail,
+        (account) =>
+          account.id !== editingId &&
+          account.email.toLowerCase() === normalizedEmail,
       )
     ) {
       setMessage('Аккаунт с такой почтой уже существует');
       return;
     }
     const account: UserAccount = {
-      id: `dispatcher-${Date.now()}`,
+      id: editingId || `dispatcher-${Date.now()}`,
       name: name.trim(),
       email: normalizedEmail,
       password,
       role: 'dispatcher',
     };
-    const next = [account, ...accounts];
+    const next = editingId
+      ? accounts.map((item) => (item.id === editingId ? account : item))
+      : [account, ...accounts];
     setAccounts(next);
     storeDispatcherAccounts(next);
     setName('');
     setEmail('');
     setPassword('');
-    setMessage(`Аккаунт ${account.name} создан`);
+    setEditingId(null);
+    setMessage(
+      editingId
+        ? `Данные аккаунта ${account.name} обновлены`
+        : `Аккаунт ${account.name} создан`,
+    );
+  };
+
+  const editAccount = (account: UserAccount) => {
+    setEditingId(account.id);
+    setName(account.name);
+    setEmail(account.email);
+    setPassword(account.password);
+    setMessage(`Редактирование аккаунта ${account.name}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setName('');
+    setEmail('');
+    setPassword('');
+    setMessage('Редактирование отменено');
   };
 
   const deleteAccount = (account: UserAccount) => {
@@ -2657,6 +2748,12 @@ function AdminPanel({
     const next = accounts.filter((item) => item.id !== account.id);
     setAccounts(next);
     storeDispatcherAccounts(next);
+    if (editingId === account.id) {
+      setEditingId(null);
+      setName('');
+      setEmail('');
+      setPassword('');
+    }
     setMessage(`Аккаунт ${account.name} удалён`);
   };
 
@@ -2685,18 +2782,22 @@ function AdminPanel({
       <main className="admin-content">
         <PageHead
           title="Аккаунты диспетчеров"
-          subtitle="Создание и удаление учётных записей"
+          subtitle="Создание, редактирование и удаление учётных записей"
         />
         {message && <div className="admin-message">{message}</div>}
         <div className="admin-grid">
-          <form className="panel admin-form" onSubmit={createAccount}>
+          <form className="panel admin-form" onSubmit={saveAccount}>
             <div className="admin-section-head">
               <span className="metric-icon purple">
                 <UserPlus size={20} />
               </span>
               <div>
-                <h3>Новый диспетчер</h3>
-                <p>Укажите данные для входа сотрудника</p>
+                <h3>{editingId ? 'Редактирование' : 'Новый диспетчер'}</h3>
+                <p>
+                  {editingId
+                    ? 'Измените данные учётной записи'
+                    : 'Укажите данные для входа сотрудника'}
+                </p>
               </div>
             </div>
             <label>
@@ -2729,9 +2830,21 @@ function AdminPanel({
                 required
               />
             </label>
-            <button className="primary-btn full" type="submit">
-              <UserPlus size={16} /> Создать аккаунт
-            </button>
+            <div className="admin-form-actions">
+              {editingId && (
+                <button
+                  className="secondary-btn"
+                  type="button"
+                  onClick={cancelEditing}
+                >
+                  Отмена
+                </button>
+              )}
+              <button className="primary-btn" type="submit">
+                {editingId ? <Check size={16} /> : <UserPlus size={16} />}
+                {editingId ? 'Сохранить изменения' : 'Создать аккаунт'}
+              </button>
+            </div>
           </form>
           <section className="panel admin-list">
             <div className="admin-section-head">
@@ -2758,6 +2871,13 @@ function AdminPanel({
                     <small>{account.email}</small>
                   </span>
                   <span className="status-badge">Диспетчер</span>
+                  <button
+                    className="edit-account"
+                    onClick={() => editAccount(account)}
+                    aria-label={`Редактировать аккаунт ${account.name}`}
+                  >
+                    <Pencil size={16} />
+                  </button>
                   <button
                     className="delete-account"
                     onClick={() => deleteAccount(account)}
