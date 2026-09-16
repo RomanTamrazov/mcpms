@@ -641,7 +641,7 @@ export default function MoscollectorApp() {
           </div>
           <div>
             <strong>МосКоллектор</strong>
-            <span>Предиктивный мониторинг</span>
+            <span>Городская диспетчерская</span>
           </div>
         </div>
         <nav className="main-nav" aria-label="Основная навигация">
@@ -793,6 +793,9 @@ function Header({
         <h1>{titles[section]}</h1>
       </div>
       <div className="top-actions">
+        <span className="shift-badge">
+          Смена 01 <i /> ОДС
+        </span>
         <ThemeToggle darkTheme={darkTheme} onToggle={onToggleTheme} />
         <button
           className="icon-btn notification"
@@ -909,8 +912,8 @@ function Dashboard({
   return (
     <>
       <PageHead
-        title={`Доброе утро, ${user.name.split(' ')[0]}`}
-        subtitle="Оперативная обстановка на 15 сентября 2026, 10:00"
+        title="Сводка смены"
+        subtitle={`Диспетчер ${user.name} · 15 сентября 2026, 10:00`}
         action={
           <button
             className="secondary-btn"
