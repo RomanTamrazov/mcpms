@@ -1,10 +1,20 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
   title: 'МосКоллектор — Предиктивный мониторинг',
   description:
     'Система мониторинга и прогнозирования инцидентов городской инженерной инфраструктуры Москвы',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f1efe9' },
+    { media: '(prefers-color-scheme: dark)', color: '#100e15' },
+  ],
 };
 
 export default function RootLayout({
