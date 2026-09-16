@@ -7,6 +7,8 @@
 :root {
   --bg: #f7f7fb;
   --surface: #fff;
+  --surface-soft: #faf9fe;
+  --surface-muted: #f1f0f6;
   --text: #20202a;
   --muted: #73717d;
   --primary: #6246d9;
@@ -48,7 +50,7 @@ button {
   inset: 0 auto 0 0;
   width: var(--sidebar);
   padding: 24px 14px 18px;
-  background: #fff;
+  background: var(--surface);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -111,7 +113,7 @@ button {
   text-align: left;
 }
 .nav-item:hover {
-  background: #faf9fe;
+  background: var(--surface-soft);
   color: var(--primary);
 }
 .nav-item.active {
@@ -131,7 +133,7 @@ button {
 }
 .sidebar-status {
   margin-top: auto;
-  background: #f7faf8;
+  background: var(--surface-soft);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 11px;
@@ -161,7 +163,7 @@ button {
   padding: 10px 7px;
   border: 0;
   border-top: 1px solid var(--border);
-  background: white;
+  background: var(--surface);
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: 9px;
@@ -240,7 +242,7 @@ button {
   width: 38px;
   height: 38px;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--surface);
   border-radius: 9px;
   display: grid;
   place-items: center;
@@ -325,7 +327,7 @@ button {
 .filter-btn,
 .select-btn,
 .back-btn {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   color: #4c4a55;
 }
@@ -353,7 +355,7 @@ button {
 }
 .metric {
   position: relative;
-  background: white;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 15px;
@@ -434,7 +436,7 @@ button {
   gap: 14px;
 }
 .panel {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
@@ -475,13 +477,13 @@ button {
   width: 100%;
   border: 0;
   border-top: 1px solid var(--border);
-  background: #fff;
+  background: var(--surface);
   text-align: left;
   padding: 12px 8px;
   color: var(--text);
 }
 .risk-row:hover {
-  background: #faf9fe;
+  background: var(--surface-soft);
 }
 .risk-rank {
   width: 26px;
@@ -738,7 +740,7 @@ th {
   color: #8d8b96;
   font-weight: 600;
   padding: 10px 14px;
-  background: #fafafd;
+  background: var(--surface-soft);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
@@ -753,7 +755,7 @@ tbody tr {
   cursor: pointer;
 }
 tbody tr:hover {
-  background: #faf9fe;
+  background: var(--surface-soft);
 }
 td strong {
   font-size: 11px;
@@ -835,7 +837,7 @@ td small {
   align-items: center;
   gap: 8px;
   border: 1px solid var(--border);
-  background: white;
+  background: var(--surface);
   border-radius: 8px;
   padding: 0 12px;
   color: #8d8b96;
@@ -887,7 +889,7 @@ td small {
   top: 14px;
   display: flex;
   flex-direction: column;
-  background: white;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
@@ -897,7 +899,7 @@ td small {
   width: 35px;
   height: 35px;
   border: 0;
-  background: white;
+  background: var(--surface);
   font-size: 18px;
 }
 .map-controls button + button {
@@ -943,7 +945,7 @@ td small {
   background: var(--green);
 }
 .object-card {
-  background: white;
+  background: var(--surface);
 }
 .object-image {
   height: 145px;
@@ -983,7 +985,7 @@ td small {
   margin: 18px 0;
 }
 .object-stats div {
-  background: #fafafd;
+  background: var(--surface-soft);
   padding: 10px;
   border-radius: 8px;
 }
@@ -1074,7 +1076,7 @@ td small {
   height: 28px;
   min-width: 28px;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--surface);
   border-radius: 6px;
   font-size: 9px;
 }
@@ -1162,7 +1164,7 @@ td small {
   gap: 9px;
   align-items: center;
   padding: 10px;
-  background: #fafafd;
+  background: var(--surface-soft);
   border-radius: 8px;
   color: var(--primary);
 }
@@ -1223,13 +1225,178 @@ td small {
   height: 44px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
   color: #65636f;
   font-size: 10px;
+}
+
+.theme-toggle {
+  flex: none;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+.theme-toggle:hover {
+  color: var(--primary);
+  background: var(--primary-light);
+  transform: rotate(8deg);
+}
+.login-theme-toggle {
+  position: fixed;
+  z-index: 50;
+  top: 22px;
+  right: 24px;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0d0b14;
+  --surface: #181421;
+  --surface-soft: #211b2d;
+  --surface-muted: #15111e;
+  --text: #f2eff8;
+  --muted: #aaa3b8;
+  --primary: #a38bff;
+  --primary-dark: #21163f;
+  --primary-light: #2d2348;
+  --border: #5944a0;
+  --green: #4ade80;
+  --yellow: #fbbf24;
+  --orange: #fb923c;
+  --red: #fb7185;
+}
+
+html,
+body,
+.sidebar,
+.topbar,
+.panel,
+.metric,
+.job-card,
+.login-page,
+.admin-topbar {
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+:root[data-theme='dark'] .topbar {
+  background: rgba(24, 20, 33, 0.94);
+}
+:root[data-theme='dark'] .nav-caption,
+:root[data-theme='dark'] .eyebrow,
+:root[data-theme='dark'] .live,
+:root[data-theme='dark'] td,
+:root[data-theme='dark'] td small,
+:root[data-theme='dark'] th,
+:root[data-theme='dark'] .metric-copy small,
+:root[data-theme='dark'] .decision-grid button,
+:root[data-theme='dark'] .admin-form > label > span,
+:root[data-theme='dark'] .action-menu button,
+:root[data-theme='dark'] .login-options label {
+  color: var(--muted);
+}
+:root[data-theme='dark'] .nav-item,
+:root[data-theme='dark'] .icon-btn,
+:root[data-theme='dark'] .secondary-btn,
+:root[data-theme='dark'] .filter-btn,
+:root[data-theme='dark'] .select-btn,
+:root[data-theme='dark'] .back-btn,
+:root[data-theme='dark'] .profile,
+:root[data-theme='dark'] .settings-nav button,
+:root[data-theme='dark'] .pagination button {
+  color: var(--text);
+}
+:root[data-theme='dark'] input,
+:root[data-theme='dark'] textarea,
+:root[data-theme='dark'] select {
+  background: var(--surface-soft);
+  color: var(--text);
+  border-color: var(--border);
+}
+:root[data-theme='dark'] input::placeholder,
+:root[data-theme='dark'] textarea::placeholder {
+  color: #7f788e;
+}
+:root[data-theme='dark'] .metric-icon.red,
+:root[data-theme='dark'] .risk-rank.r1,
+:root[data-theme='dark'] .risk-критический {
+  background: rgba(251, 113, 133, 0.14);
+}
+:root[data-theme='dark'] .metric-icon.orange,
+:root[data-theme='dark'] .risk-rank.r2,
+:root[data-theme='dark'] .risk-rank.r3,
+:root[data-theme='dark'] .risk-высокий {
+  background: rgba(251, 146, 60, 0.14);
+}
+:root[data-theme='dark'] .metric-icon.yellow,
+:root[data-theme='dark'] .risk-средний {
+  background: rgba(251, 191, 36, 0.14);
+}
+:root[data-theme='dark'] .metric-icon.green,
+:root[data-theme='dark'] .risk-низкий {
+  background: rgba(74, 222, 128, 0.14);
+}
+:root[data-theme='dark'] .status-success {
+  background: rgba(74, 222, 128, 0.16);
+  color: #86efac;
+}
+:root[data-theme='dark'] .status-warning {
+  background: rgba(251, 146, 60, 0.16);
+  color: #fdba74;
+}
+:root[data-theme='dark'] .status-neutral,
+:root[data-theme='dark'] .status-badge {
+  background: #292238;
+  color: #c9c1d7;
+}
+:root[data-theme='dark'] .status-monitoring {
+  background: var(--primary-light);
+  color: #c4b5fd;
+}
+:root[data-theme='dark'] .prob > span,
+:root[data-theme='dark'] .factor > div:last-child,
+:root[data-theme='dark'] .efficiency i {
+  background: #332b40;
+}
+:root[data-theme='dark'] .real-map-wrap,
+:root[data-theme='dark'] .leaflet-container,
+:root[data-theme='dark'] .map-canvas {
+  background-color: #17131f;
+}
+:root[data-theme='dark'] .leaflet-tile-pane {
+  filter: brightness(0.68) saturate(0.75) contrast(1.15);
+}
+:root[data-theme='dark'] .leaflet-control-zoom a,
+:root[data-theme='dark'] .leaflet-control-attribution,
+:root[data-theme='dark'] .leaflet-popup-content-wrapper,
+:root[data-theme='dark'] .leaflet-popup-tip {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+}
+:root[data-theme='dark'] .login-main {
+  background: var(--surface);
+}
+:root[data-theme='dark'] .login-aside {
+  background: #171027;
+}
+:root[data-theme='dark'] .login-theme-toggle .icon-btn {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+:root[data-theme='dark'] .answer-strip,
+:root[data-theme='dark'] .toast {
+  background: #231844;
+}
+:root[data-theme='dark'] .admin-message,
+:root[data-theme='dark'] .request-details,
+:root[data-theme='dark'] .job-details {
+  color: var(--text);
 }
 .decision-grid button.active {
   border-color: var(--primary);
@@ -1442,7 +1609,7 @@ td small {
 }
 .maintenance-column {
   min-width: 0;
-  background: #f1f0f6;
+  background: var(--surface-muted);
   border: 1px solid var(--border);
   border-radius: 13px;
   padding: 12px;
@@ -1469,7 +1636,7 @@ td small {
   display: grid;
   place-items: center;
   border-radius: 14px;
-  background: #fff;
+  background: var(--surface);
   color: var(--primary);
   font-size: 10px;
   font-weight: 700;
@@ -1480,7 +1647,7 @@ td small {
   gap: 10px;
 }
 .job-card {
-  background: white;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 16px;
@@ -1506,7 +1673,7 @@ td small {
   margin-top: 12px;
   padding: 9px 10px;
   border-radius: 7px;
-  background: #faf9fe;
+  background: var(--surface-soft);
   font-size: 10px;
   color: var(--muted);
 }
@@ -1696,7 +1863,7 @@ td small {
 }
 .settings-nav button {
   border: 0;
-  background: white;
+  background: var(--surface);
   width: 100%;
   height: 42px;
   border-radius: 8px;
@@ -1831,7 +1998,7 @@ td small {
   min-height: 100vh;
   display: grid;
   grid-template-columns: 1.15fr 0.85fr;
-  background: white;
+  background: var(--surface);
 }
 .login-aside {
   background: var(--primary-dark);
@@ -1979,7 +2146,7 @@ td small {
 }
 .login-help {
   margin-top: 18px;
-  background: #faf9fe;
+  background: var(--surface-soft);
   padding: 12px;
   border-radius: 9px;
   display: flex;
@@ -2299,7 +2466,7 @@ td small {
   top: 50%;
   transform: translate(-50%, -50%);
   padding: 12px 16px;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 9px;
   box-shadow: 0 8px 24px rgba(32, 32, 42, 0.12);
@@ -2323,7 +2490,7 @@ td small {
   top: 44px;
   width: 205px;
   padding: 6px;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 9px;
   box-shadow: 0 10px 30px rgba(32, 32, 42, 0.13);
@@ -2333,7 +2500,7 @@ td small {
   height: 36px;
   border: 0;
   border-radius: 6px;
-  background: #fff;
+  background: var(--surface);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -2391,7 +2558,7 @@ td small {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  background: #fff;
+  background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
 .admin-profile {
@@ -2516,7 +2683,7 @@ td small {
   place-items: center;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface);
   color: var(--red);
 }
 .edit-account {
@@ -2553,4 +2720,42 @@ td small {
   .leaflet-map {
     min-height: 460px;
   }
+}
+
+/* Keep late component rules theme-aware. */
+:root[data-theme='dark'] .status-badge.status-success {
+  background: rgba(74, 222, 128, 0.16);
+  color: #86efac;
+}
+:root[data-theme='dark'] .status-badge.status-warning {
+  background: rgba(251, 146, 60, 0.16);
+  color: #fdba74;
+}
+:root[data-theme='dark'] .status-badge.status-monitoring {
+  background: var(--primary-light);
+  color: #c4b5fd;
+}
+:root[data-theme='dark'] .status-badge.status-neutral {
+  background: #292238;
+  color: #c9c1d7;
+}
+:root[data-theme='dark'] .job-details,
+:root[data-theme='dark'] .admin-message {
+  color: var(--text);
+}
+:root[data-theme='dark'] .login-options label,
+:root[data-theme='dark'] .admin-form > label > span,
+:root[data-theme='dark'] .action-menu button {
+  color: var(--muted);
+}
+:root[data-theme='dark'] .recharts-default-tooltip {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+:root[data-theme='dark'] .recharts-tooltip-label,
+:root[data-theme='dark'] .recharts-legend-item-text,
+:root[data-theme='dark'] .recharts-cartesian-axis-tick-value {
+  color: var(--muted) !important;
+  fill: var(--muted) !important;
 }

@@ -24,6 +24,7 @@ import {
   Map,
   Menu,
   MoreHorizontal,
+  Moon,
   Pencil,
   RefreshCcw,
   Search,
@@ -32,6 +33,7 @@ import {
   Siren,
   SlidersHorizontal,
   Sparkles,
+  Sun,
   Thermometer,
   Trash2,
   TrendingDown,
@@ -98,6 +100,7 @@ const defaultDispatcherAccounts: UserAccount[] = [
 
 const accountsStorageKey = 'moscollector-dispatcher-accounts';
 const sessionStorageKey = 'moscollector-current-user';
+const themeStorageKey = 'moscollector-theme';
 const deploymentBasePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 function deploymentPath(path: string) {
@@ -549,6 +552,24 @@ export default function MoscollectorApp() {
   );
   const [menuOpen, setMenuOpen] = useState(false);
   const [toast, setToast] = useState('');
+  const [darkTheme, setDarkTheme] = useState(false);
+  useEffect(() => {
+    const storedTheme = window.localStorage.getItem(themeStorageKey);
+    const useDarkTheme =
+      storedTheme === 'dark' ||
+      (!storedTheme &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches);
+    setDarkTheme(useDarkTheme);
+    document.documentElement.dataset.theme = useDarkTheme ? 'dark' : 'light';
+  }, []);
+  const toggleTheme = () => {
+    setDarkTheme((current) => {
+      const next = !current;
+      document.documentElement.dataset.theme = next ? 'dark' : 'light';
+      window.localStorage.setItem(themeStorageKey, next ? 'dark' : 'light');
+      return next;
+    });
+  };
   useEffect(() => {
     const path =
       window.location.pathname.slice(deploymentBasePath.length) || '/';
@@ -584,6 +605,8 @@ export default function MoscollectorApp() {
   if (!currentUser)
     return (
       <Login
+        darkTheme={darkTheme}
+        onToggleTheme={toggleTheme}
         onLogin={(user) => {
           setCurrentUser(user);
           storeCurrentUser(user);
@@ -599,6 +622,8 @@ export default function MoscollectorApp() {
     return (
       <AdminPanel
         user={currentUser}
+        darkTheme={darkTheme}
+        onToggleTheme={toggleTheme}
         onLogout={() => {
           setCurrentUser(null);
           storeCurrentUser(null);
@@ -665,6 +690,8 @@ export default function MoscollectorApp() {
         <Header
           section={section}
           user={currentUser}
+          darkTheme={darkTheme}
+          onToggleTheme={toggleTheme}
           onMenu={() => setMenuOpen(!menuOpen)}
           onNotify={notify}
         />
@@ -735,11 +762,15 @@ function NavButton({
 function Header({
   section,
   user,
+  darkTheme,
+  onToggleTheme,
   onMenu,
   onNotify,
 }: {
   section: Section;
   user: UserAccount;
+  darkTheme: boolean;
+  onToggleTheme: () => void;
   onMenu: () => void;
   onNotify: (s: string) => void;
 }) {
@@ -762,6 +793,7 @@ function Header({
         <h1>{titles[section]}</h1>
       </div>
       <div className="top-actions">
+        <ThemeToggle darkTheme={darkTheme} onToggle={onToggleTheme} />
         <button
           className="icon-btn notification"
           onClick={() => onNotify('Новых уведомлений: 3')}
@@ -781,6 +813,27 @@ function Header({
         </button>
       </div>
     </header>
+  );
+}
+
+function ThemeToggle({
+  darkTheme,
+  onToggle,
+}: {
+  darkTheme: boolean;
+  onToggle: () => void;
+}) {
+  const label = darkTheme ? 'Включить светлую тему' : 'Включить тёмную тему';
+  return (
+    <button
+      className="icon-btn theme-toggle"
+      type="button"
+      onClick={onToggle}
+      aria-label={label}
+      title={label}
+    >
+      {darkTheme ? <Sun size={18} /> : <Moon size={18} />}
+    </button>
   );
 }
 function PageHead({
@@ -2675,9 +2728,13 @@ function Analytics({ notify }: { notify: (s: string) => void }) {
 
 function AdminPanel({
   user,
+  darkTheme,
+  onToggleTheme,
   onLogout,
 }: {
   user: UserAccount;
+  darkTheme: boolean;
+  onToggleTheme: () => void;
   onLogout: () => void;
 }) {
   const [accounts, setAccounts] = useState<UserAccount[]>([]);
@@ -2770,6 +2827,7 @@ function AdminPanel({
           </div>
         </div>
         <div className="admin-profile">
+          <ThemeToggle darkTheme={darkTheme} onToggle={onToggleTheme} />
           <span>
             <strong>{user.name}</strong>
             <small>Администратор</small>
@@ -2901,7 +2959,15 @@ function AdminPanel({
   );
 }
 
-function Login({ onLogin }: { onLogin: (user: UserAccount) => void }) {
+function Login({
+  darkTheme,
+  onToggleTheme,
+  onLogin,
+}: {
+  darkTheme: boolean;
+  onToggleTheme: () => void;
+  onLogin: (user: UserAccount) => void;
+}) {
   const [loading, setLoading] = useState(false);
   const [help, setHelp] = useState(false);
   const [email, setEmail] = useState('dispatcher@moscollector.ru');
@@ -2909,6 +2975,9 @@ function Login({ onLogin }: { onLogin: (user: UserAccount) => void }) {
   const [error, setError] = useState('');
   return (
     <div className="login-page">
+      <div className="login-theme-toggle">
+        <ThemeToggle darkTheme={darkTheme} onToggle={onToggleTheme} />
+      </div>
       <div className="login-aside">
         <div className="brand login-brand">
           <div className="brand-mark">
