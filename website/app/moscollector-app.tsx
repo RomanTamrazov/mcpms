@@ -19,7 +19,6 @@ import {
   Factory,
   Gauge,
   LayoutDashboard,
-  LocateFixed,
   LogOut,
   Map,
   Menu,
@@ -63,6 +62,11 @@ const InteractiveMap = dynamic(() => import('./interactive-map'), {
 });
 
 type Risk = 'Критический' | 'Высокий' | 'Средний' | 'Низкий';
+type UserRole =
+  | 'admin'
+  | 'central_dispatcher'
+  | 'district_dispatcher'
+  | 'technician';
 type Section =
   | 'dashboard'
   | 'map'
@@ -77,7 +81,17 @@ type UserAccount = {
   name: string;
   email: string;
   password: string;
-  role: 'admin' | 'dispatcher';
+  role: UserRole;
+  unit: string;
+  district: string;
+  active: boolean;
+};
+
+const roleLabels: Record<UserRole, string> = {
+  admin: 'Администратор',
+  central_dispatcher: 'Диспетчер ОДС',
+  district_dispatcher: 'Районный диспетчер',
+  technician: 'Технический специалист',
 };
 
 const adminAccount: UserAccount = {
@@ -86,6 +100,9 @@ const adminAccount: UserAccount = {
   email: 'admin@moscollector.ru',
   password: 'admin2026',
   role: 'admin',
+  unit: 'Управление цифровых систем',
+  district: 'Все округа',
+  active: true,
 };
 
 const defaultDispatcherAccounts: UserAccount[] = [
@@ -94,11 +111,35 @@ const defaultDispatcherAccounts: UserAccount[] = [
     name: 'Анна Крылова',
     email: 'dispatcher@moscollector.ru',
     password: 'monitoring2026',
-    role: 'dispatcher',
+    role: 'central_dispatcher',
+    unit: 'Центральная ОДС',
+    district: 'Все округа',
+    active: true,
+  },
+  {
+    id: 'dispatcher-south',
+    name: 'Михаил Орлов',
+    email: 'south@moscollector.ru',
+    password: 'monitoring2026',
+    role: 'district_dispatcher',
+    unit: 'Эксплуатационный район №3',
+    district: 'ЮАО',
+    active: true,
+  },
+  {
+    id: 'technician-default',
+    name: 'Илья Соколов',
+    email: 'tech@moscollector.ru',
+    password: 'monitoring2026',
+    role: 'technician',
+    unit: 'Аварийно-ремонтная служба',
+    district: 'ЮАО',
+    active: true,
   },
 ];
 
 const accountsStorageKey = 'moscollector-dispatcher-accounts';
+const accountsStorageVersionKey = 'moscollector-accounts-version';
 const sessionStorageKey = 'moscollector-current-user';
 const themeStorageKey = 'moscollector-theme';
 const deploymentBasePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
@@ -110,9 +151,31 @@ function deploymentPath(path: string) {
 function loadDispatcherAccounts() {
   try {
     const stored = window.localStorage.getItem(accountsStorageKey);
-    return stored
-      ? (JSON.parse(stored) as UserAccount[])
-      : defaultDispatcherAccounts;
+    if (!stored) return defaultDispatcherAccounts;
+    const normalized = (JSON.parse(stored) as Array<Partial<UserAccount> & Pick<UserAccount, 'id' | 'name' | 'email' | 'password'>>)
+      .filter((account) => String(account.role) !== 'manager')
+      .map(
+      (account) => ({
+        ...account,
+        role:
+          account.role === ('dispatcher' as UserRole) || !account.role
+            ? 'central_dispatcher'
+            : account.role,
+        unit: account.unit || 'Центральная ОДС',
+        district: account.district || 'Все округа',
+        active: account.active !== false,
+      }) as UserAccount,
+    );
+    if (window.localStorage.getItem(accountsStorageVersionKey) !== '3') {
+      const migrated = [
+        ...normalized,
+        ...defaultDispatcherAccounts.filter((demo) => !normalized.some((account) => account.email.toLowerCase() === demo.email.toLowerCase())),
+      ];
+      window.localStorage.setItem(accountsStorageKey, JSON.stringify(migrated));
+      window.localStorage.setItem(accountsStorageVersionKey, '3');
+      return migrated;
+    }
+    return normalized;
   } catch {
     return defaultDispatcherAccounts;
   }
@@ -121,6 +184,7 @@ function loadDispatcherAccounts() {
 function storeDispatcherAccounts(accounts: UserAccount[]) {
   try {
     window.localStorage.setItem(accountsStorageKey, JSON.stringify(accounts));
+    window.localStorage.setItem(accountsStorageVersionKey, '3');
   } catch {
     // Keep account management usable for the current session.
   }
@@ -139,9 +203,10 @@ function loadCurrentUser() {
   try {
     const userId = window.localStorage.getItem(sessionStorageKey);
     if (!userId) return null;
-    return [adminAccount, ...loadDispatcherAccounts()].find(
+    const account = [adminAccount, ...loadDispatcherAccounts()].find(
       (account) => account.id === userId,
     );
+    return account?.active ? account : null;
   } catch {
     return null;
   }
@@ -157,6 +222,12 @@ const nav: { id: Section; label: string; icon: typeof LayoutDashboard }[] = [
   { id: 'analytics', label: 'Аналитика', icon: BarChart3 },
 ];
 
+const roleSections: Record<Exclude<UserRole, 'admin'>, Section[]> = {
+  central_dispatcher: ['dashboard', 'map', 'predictions', 'incidents', 'equipment', 'maintenance', 'analytics'],
+  district_dispatcher: ['dashboard', 'map', 'predictions', 'incidents', 'equipment', 'maintenance'],
+  technician: ['dashboard', 'map', 'equipment', 'maintenance'],
+};
+
 const predictions = [
   {
     id: 'PR-2491',
@@ -165,7 +236,7 @@ const predictions = [
     type: 'Перегрев насоса №3',
     probability: 94,
     risk: 'Критический' as Risk,
-    horizon: '6 часов',
+    horizon: '24 часа',
     time: 'Сегодня, 09:42',
     status: 'Новое',
   },
@@ -176,7 +247,7 @@ const predictions = [
     type: 'Падение давления',
     probability: 82,
     risk: 'Высокий' as Risk,
-    horizon: '12 часов',
+    horizon: '24 часа',
     time: 'Сегодня, 09:18',
     status: 'В работе',
   },
@@ -187,7 +258,7 @@ const predictions = [
     type: 'Превышение уровня',
     probability: 76,
     risk: 'Высокий' as Risk,
-    horizon: '18 часов',
+    horizon: '36 часов',
     time: 'Сегодня, 08:57',
     status: 'В работе',
   },
@@ -256,28 +327,53 @@ type SentRequest = (typeof maintenanceJobs)[number] & {
   status: string;
   sourcePredictionId?: string;
   dispatcherComment?: string;
+  assignedUnit?: string;
+  result?: string;
+  statusHistory?: { status: string; at: string; author: string }[];
+};
+
+type ArchivedRequest = SentRequest & {
+  archivedAt: string;
+  technicianResponse: string;
+  closedBy: string;
 };
 
 const sentRequestsStorageKey = 'moscollector-sent-requests';
+const archivedRequestsStorageKey = 'moscollector-archived-requests';
 const initialSentRequests: SentRequest[] = [
   {
     ...maintenanceJobs[1],
     requestId: 'RQ-1087',
     sentAt: 'Сегодня, 09:18',
     status: 'Принята',
+    assignedUnit: 'Аварийно-ремонтная бригада №14',
+    statusHistory: [{ status: 'Принята', at: 'Сегодня, 09:18', author: 'Система заявок' }],
   },
   {
     ...maintenanceJobs[3],
     requestId: 'RQ-1086',
     sentAt: 'Вчера, 17:42',
     status: 'В работе',
+    assignedUnit: 'Аварийно-ремонтная бригада №7',
+    statusHistory: [
+      { status: 'Принята', at: 'Вчера, 17:42', author: 'Система заявок' },
+      { status: 'В работе', at: 'Сегодня, 08:05', author: 'Бригада №7' },
+    ],
   },
 ];
 
 function loadSentRequests() {
   try {
     const saved = window.localStorage.getItem(sentRequestsStorageKey);
-    return saved ? (JSON.parse(saved) as SentRequest[]) : initialSentRequests;
+    return saved
+      ? (JSON.parse(saved) as SentRequest[]).map((request) => ({
+          ...request,
+          assignedUnit: request.assignedUnit || 'Аварийно-ремонтная бригада',
+          statusHistory: request.statusHistory || [
+            { status: request.status, at: request.sentAt, author: 'Система заявок' },
+          ],
+        }))
+      : initialSentRequests;
   } catch {
     return initialSentRequests;
   }
@@ -291,6 +387,26 @@ function storeSentRequests(requests: SentRequest[]) {
     );
   } catch {
     // Keep the interaction usable even when browser storage is disabled.
+  }
+}
+
+function loadArchivedRequests() {
+  try {
+    const saved = window.localStorage.getItem(archivedRequestsStorageKey);
+    return saved ? (JSON.parse(saved) as ArchivedRequest[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function storeArchivedRequests(requests: ArchivedRequest[]) {
+  try {
+    window.localStorage.setItem(
+      archivedRequestsStorageKey,
+      JSON.stringify(requests),
+    );
+  } catch {
+    // Keep the active workflow usable when browser storage is disabled.
   }
 }
 
@@ -312,12 +428,15 @@ const journalStorageKey = 'moscollector-journal';
 function journalStatus(decision: string) {
   if (decision === 'Направить бригаду') return 'В работе';
   if (decision === 'Продолжить мониторинг') return 'Наблюдение';
+  if (decision === 'Передать ответственному') return 'Передан';
   return 'Закрыт';
 }
 
 function journalFact(decision: string) {
   if (decision === 'Направить бригаду') return 'Ожидается';
   if (decision === 'Продолжить мониторинг') return 'Не наступил';
+  if (decision === 'Передать ответственному') return 'На проверке';
+  if (decision === 'Закрыть после проверки') return 'Проверен';
   return 'Не подтверждён';
 }
 
@@ -440,54 +559,145 @@ const equipment = [
 
 const mapObjects: MapObject[] = [
   {
-    id: 'PR-2491',
-    name: 'КНС «Нагатинская»',
+    id: 'OBJ-101',
+    predictionId: 'PR-2491',
+    name: 'Коллектор Нагатинский',
     address: 'Нагатинская наб., 18',
     district: 'ЮАО',
+    system: 'Водоудаление',
     incident: 'Перегрев насоса',
     risk: 'critical',
     probability: 94,
     position: [55.6845, 37.6382],
+    geometry: [[70, 110], [170, 120], [270, 145], [365, 180]],
+    picketFrom: 110,
+    picketTo: 150,
+    sensors: 42,
+    onlineSensors: 42,
+    connection: 'Онлайн',
   },
   {
-    id: 'PR-2490',
-    name: 'Тепловой пункт ТП-184',
+    id: 'OBJ-184',
+    predictionId: 'PR-2490',
+    name: 'Коллектор Якиманка',
     address: 'ул. Большая Якиманка, 24',
     district: 'ЦАО',
+    system: 'Температурный контроль',
     incident: 'Падение давления',
     risk: 'high',
     probability: 82,
     position: [55.7359, 37.6127],
+    geometry: [[365, 180], [430, 230], [452, 286], [520, 325]],
+    picketFrom: 40,
+    picketTo: 80,
+    sensors: 36,
+    onlineSensors: 35,
+    connection: 'Нестабильно',
   },
   {
-    id: 'PR-2489',
+    id: 'OBJ-017',
+    predictionId: 'PR-2489',
     name: 'Коллектор К-17',
     address: 'ул. Шереметьевская, 36',
     district: 'СВАО',
+    system: 'Водоудаление',
     incident: 'Превышение уровня',
     risk: 'high',
     probability: 76,
     position: [55.8012, 37.6175],
+    geometry: [[452, 286], [560, 250], [670, 220], [825, 205]],
+    picketFrom: 210,
+    picketTo: 250,
+    sensors: 54,
+    onlineSensors: 54,
+    connection: 'Онлайн',
   },
   {
-    id: 'PR-2488',
-    name: 'Водозаборный узел ВЗУ-7',
+    id: 'OBJ-207',
+    predictionId: 'PR-2488',
+    name: 'Коллектор Рублёвский',
     address: 'Рублёвское ш., 82',
     district: 'ЗАО',
+    system: 'Насосная автоматика',
     incident: 'Аномальная вибрация',
     risk: 'medium',
     probability: 61,
     position: [55.7382, 37.4248],
+    geometry: [[85, 345], [190, 320], [300, 315], [452, 286]],
+    picketFrom: 70,
+    picketTo: 110,
+    sensors: 28,
+    onlineSensors: 28,
+    connection: 'Онлайн',
   },
   {
-    id: 'PR-2487',
-    name: 'ЦТП «Лефортово»',
+    id: 'OBJ-312',
+    predictionId: 'PR-2487',
+    name: 'Коллектор Лефортово',
     address: 'Красноказарменная ул., 13',
     district: 'ЮВАО',
+    system: 'Газовый контроль',
     incident: 'Снижение расхода',
     risk: 'low',
     probability: 34,
     position: [55.7586, 37.7026],
+    geometry: [[520, 325], [625, 350], [730, 335], [845, 300]],
+    picketFrom: 130,
+    picketTo: 170,
+    sensors: 31,
+    onlineSensors: 31,
+    connection: 'Онлайн',
+  },
+  {
+    id: 'OBJ-409',
+    name: 'Коллектор Пресненский',
+    address: 'Шмитовский пр., 29',
+    district: 'ЦАО',
+    system: 'Охранная сигнализация',
+    incident: 'Одиночное движение',
+    risk: 'medium',
+    probability: 57,
+    position: [55.7548, 37.5486],
+    geometry: [[105, 475], [220, 450], [335, 455], [445, 470]],
+    picketFrom: 20,
+    picketTo: 60,
+    sensors: 39,
+    onlineSensors: 38,
+    connection: 'Нестабильно',
+  },
+  {
+    id: 'OBJ-511',
+    name: 'Коллектор Басманный',
+    address: 'Спартаковская ул., 16',
+    district: 'ЦАО',
+    system: 'Пожарная система',
+    incident: 'Отклонений нет',
+    risk: 'low',
+    probability: 12,
+    position: [55.7721, 37.6804],
+    geometry: [[445, 470], [555, 465], [665, 475], [810, 455]],
+    picketFrom: 310,
+    picketTo: 350,
+    sensors: 47,
+    onlineSensors: 47,
+    connection: 'Онлайн',
+  },
+  {
+    id: 'OBJ-608',
+    name: 'Коллектор Останкинский',
+    address: '1-я Останкинская ул., 7',
+    district: 'СВАО',
+    system: 'Связь и телеметрия',
+    incident: 'Потеря связи',
+    risk: 'high',
+    probability: 79,
+    position: [55.8231, 37.6225],
+    geometry: [[610, 75], [680, 105], [755, 135], [825, 205]],
+    picketFrom: 400,
+    picketTo: 440,
+    sensors: 33,
+    onlineSensors: 0,
+    connection: 'Нет связи',
   },
 ];
 
@@ -517,6 +727,49 @@ const analyticsMonths = [
   { m: 'Авг', precision: 89, recall: 84 },
   { m: 'Сен', precision: 91, recall: 86 },
 ];
+
+const predictionContexts: Record<string, {
+  system: string;
+  objectId: string;
+  picket: string;
+  modelVersion: string;
+  sources: string[];
+  factors: { label: string; value: string; impact: number; note: string }[];
+  relatedSignals: { time: string; channel: string; event: string; state: string }[];
+  historicalMatch: string;
+}> = {
+  'PR-2491': {
+    system: 'Водоудаление', objectId: 'OBJ-101', picket: 'ПК 130', modelVersion: 'ML API · ожидается подключение',
+    sources: ['СМВУ', 'Реестр оборудования', 'Журнал ОДС'],
+    factors: [
+      { label: 'Рост температуры', value: '87 °C', impact: 42, note: 'выше порога 80 °C в течение 38 минут' },
+      { label: 'Вибрация насоса', value: '5,6 мм/с', impact: 31, note: 'устойчивый рост на трёх интервалах' },
+      { label: 'Падение давления', value: '3,7 бар', impact: 17, note: 'на 0,3 бар ниже рабочего диапазона' },
+      { label: 'История оборудования', value: '18 420 ч', impact: 10, note: 'приближение к сервисному интервалу' },
+    ],
+    relatedSignals: [
+      { time: '09:42', channel: 'CH-56682', event: 'Температура выше порога', state: 'Подтверждено' },
+      { time: '09:39', channel: 'CH-183582', event: 'Рост вибрации', state: 'Подтверждено' },
+      { time: '09:35', channel: 'CH-215811', event: 'Давление ниже нормы', state: 'Связано' },
+    ],
+    historicalMatch: 'Похожий набор сигналов встречался 7 раз; в 5 случаях потребовался осмотр подшипникового узла.',
+  },
+};
+
+const defaultPredictionContext = {
+  system: 'Инженерная система', objectId: 'OBJ-DEMO', picket: 'ПК 80', modelVersion: 'ML API · ожидается подключение',
+  sources: ['СМВУ', 'Реестр оборудования'],
+  factors: [
+    { label: 'Отклонение показаний', value: '+18%', impact: 46, note: 'устойчиво на нескольких интервалах' },
+    { label: 'Связанные датчики', value: '3 канала', impact: 34, note: 'сигналы подтверждают общий сценарий' },
+    { label: 'Исторический паттерн', value: '6 совпадений', impact: 20, note: 'аналогичные случаи в журнале' },
+  ],
+  relatedSignals: [
+    { time: '09:18', channel: 'CH-56682', event: 'Отклонение от рабочего диапазона', state: 'Подтверждено' },
+    { time: '09:12', channel: 'CH-183582', event: 'Связанный сигнал', state: 'Связано' },
+  ],
+  historicalMatch: 'Найдены исторические случаи с похожей последовательностью сигналов. Итог требует проверки диспетчером.',
+};
 
 function riskClass(risk: Risk) {
   return `risk risk-${risk.toLowerCase()}`;
@@ -587,7 +840,18 @@ export default function MoscollectorApp() {
     if ((pieces[0] === 'predictions' || pieces[0] === 'equipment') && pieces[1])
       setDetail(pieces[1]);
   }, []);
+  useEffect(() => {
+    if (!currentUser || currentUser.role === 'admin') return;
+    if (roleSections[currentUser.role].includes(section)) return;
+    setSection('dashboard');
+    setDetail(null);
+    window.history.replaceState({}, '', deploymentPath('/dashboard/'));
+  }, [currentUser, section]);
   const go = (next: Section, id?: string) => {
+    if (currentUser && currentUser.role !== 'admin' && !roleSections[currentUser.role].includes(next)) {
+      notify('У вашей роли нет доступа к этому разделу');
+      return;
+    }
     setSection(next);
     setDetail(id || null);
     setMenuOpen(false);
@@ -632,6 +896,8 @@ export default function MoscollectorApp() {
       />
     );
   }
+  const currentRole = currentUser.role as Exclude<UserRole, 'admin'>;
+  const visibleNav = nav.filter((item) => roleSections[currentRole].includes(item.id));
   return (
     <div className="app-shell">
       <aside className={`sidebar ${menuOpen ? 'sidebar-open' : ''}`}>
@@ -646,7 +912,7 @@ export default function MoscollectorApp() {
         </div>
         <nav className="main-nav" aria-label="Основная навигация">
           <span className="nav-caption">Рабочее пространство</span>
-          {nav.slice(0, 6).map((item) => (
+          {visibleNav.filter((item) => item.id !== 'analytics').map((item) => (
             <NavButton
               key={item.id}
               item={item}
@@ -655,7 +921,7 @@ export default function MoscollectorApp() {
             />
           ))}
           <span className="nav-caption nav-caption-second">Управление</span>
-          {nav.slice(6).map((item) => (
+          {visibleNav.filter((item) => item.id === 'analytics').map((item) => (
             <NavButton
               key={item.id}
               item={item}
@@ -681,7 +947,7 @@ export default function MoscollectorApp() {
           </span>
           <span>
             <strong>{currentUser.name}</strong>
-            <small>Диспетчер</small>
+            <small>{roleLabels[currentUser.role]}</small>
           </span>
           <LogOut size={16} />
         </button>
@@ -699,7 +965,7 @@ export default function MoscollectorApp() {
           {section === 'dashboard' && (
             <Dashboard go={go} notify={notify} user={currentUser} />
           )}
-          {section === 'map' && <MapPage go={go} notify={notify} />}
+          {section === 'map' && <MapPage go={go} notify={notify} user={currentUser} />}
           {section === 'predictions' &&
             (detail ? (
               <PredictionDetail
@@ -709,7 +975,7 @@ export default function MoscollectorApp() {
                 dispatcher={currentUser}
               />
             ) : (
-              <Predictions go={go} notify={notify} />
+              <Predictions go={go} notify={notify} user={currentUser} />
             ))}
           {section === 'incidents' && <Incidents notify={notify} />}
           {section === 'equipment' &&
@@ -718,7 +984,7 @@ export default function MoscollectorApp() {
             ) : (
               <EquipmentPage go={go} notify={notify} />
             ))}
-          {section === 'maintenance' && <Maintenance notify={notify} />}
+          {section === 'maintenance' && <Maintenance notify={notify} user={currentUser} />}
           {section === 'analytics' && <Analytics notify={notify} />}
         </div>
       </main>
@@ -794,7 +1060,7 @@ function Header({
       </div>
       <div className="top-actions">
         <span className="shift-badge">
-          Смена 01 <i /> ОДС
+          Смена 01 <i /> {user.district === 'Все округа' ? 'Все округа' : user.district}
         </span>
         <ThemeToggle darkTheme={darkTheme} onToggle={onToggleTheme} />
         <button
@@ -806,7 +1072,7 @@ function Header({
         </button>
         <button
           className="avatar top-avatar"
-          onClick={() => onNotify(`${user.name} · Диспетчер`)}
+          onClick={() => onNotify(`${user.name} · ${roleLabels[user.role]}`)}
         >
           {user.name
             .split(' ')
@@ -909,11 +1175,19 @@ function Dashboard({
   notify: (s: string) => void;
   user: UserAccount;
 }) {
+  const shiftDate = new Intl.DateTimeFormat('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date());
+  const dashboardPredictions = predictions.filter((prediction) => user.district === 'Все округа' || prediction.district === user.district);
   return (
     <>
       <PageHead
         title="Сводка смены"
-        subtitle={`Диспетчер ${user.name} · 15 сентября 2026, 10:00`}
+        subtitle={`${roleLabels[user.role]} ${user.name} · ${shiftDate}`}
         action={
           <button
             className="secondary-btn"
@@ -927,7 +1201,7 @@ function Dashboard({
         <Metric
           icon={AlertTriangle}
           label="Критические риски"
-          value="3"
+          value={String(dashboardPredictions.filter((prediction) => prediction.risk === 'Критический').length)}
           note="требуют решения"
           tone="red"
           trend="+1 за час"
@@ -974,7 +1248,7 @@ function Dashboard({
             onClick={() => go('predictions')}
           />
           <div className="risk-list">
-            {predictions.slice(0, 3).map((p, i) => (
+            {dashboardPredictions.slice(0, 3).map((p, i) => (
               <button
                 key={p.id}
                 className="risk-row"
@@ -1023,7 +1297,7 @@ function Dashboard({
             </span>
           </div>
           <div className="chart-wrap">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 800, height: 240 }}>
               <AreaChart data={trend}>
                 <defs>
                   <linearGradient id="predFill" x1="0" y1="0" x2="0" y2="1">
@@ -1060,7 +1334,7 @@ function Dashboard({
             onClick={() => go('predictions')}
           />
           <PredictionTable
-            rows={predictions.slice(0, 4)}
+            rows={dashboardPredictions.slice(0, 4)}
             onRow={(id) => go('predictions', id)}
           />
         </section>
@@ -1118,33 +1392,35 @@ function MapMarker({
 function MapPage({
   go,
   notify,
+  user,
 }: {
   go: (s: Section, id?: string) => void;
   notify: (s: string) => void;
+  user: UserAccount;
 }) {
   const [query, setQuery] = useState('');
   const [risk, setRisk] = useState('all');
   const [district, setDistrict] = useState('all');
   const [incident, setIncident] = useState('all');
-  const [selectedId, setSelectedId] = useState('PR-2491');
-  const [center, setCenter] = useState<[number, number]>([
-    55.751244, 37.618423,
-  ]);
+  const [system, setSystem] = useState('all');
+  const [selectedId, setSelectedId] = useState('OBJ-101');
   const filtered = useMemo(
     () =>
       mapObjects.filter(
         (object) =>
+          (user.district === 'Все округа' || object.district === user.district) &&
           (risk === 'all' || object.risk === risk) &&
           (district === 'all' || object.district === district) &&
           (incident === 'all' || object.incident === incident) &&
-          `${object.name} ${object.address} ${object.id}`
+          (system === 'all' || object.system === system) &&
+          `${object.name} ${object.address} ${object.id} ${object.system}`
             .toLowerCase()
             .includes(query.toLowerCase()),
       ),
-    [district, incident, query, risk],
+    [district, incident, query, risk, system, user.district],
   );
   const selected =
-    mapObjects.find((object) => object.id === selectedId) ||
+    filtered.find((object) => object.id === selectedId) ||
     filtered[0] ||
     mapObjects[0];
   const riskLabels: Record<MapObject['risk'], Risk> = {
@@ -1159,14 +1435,18 @@ function MapPage({
       features: filtered.map((object) => ({
         type: 'Feature',
         geometry: {
-          type: 'Point',
-          coordinates: [object.position[1], object.position[0]],
+          type: 'LineString',
+          coordinates: object.geometry.map(([x, y]) => [x, y]),
         },
         properties: {
           id: object.id,
           name: object.name,
+          system: object.system,
+          picket_from: object.picketFrom,
+          picket_to: object.picketTo,
           risk: object.risk,
           probability: object.probability,
+          demo_geometry: true,
         },
       })),
     };
@@ -1177,42 +1457,26 @@ function MapPage({
     );
     notify('GeoJSON выгружен');
   };
-  const locate = () => {
-    if (!navigator.geolocation) {
-      notify('Геолокация недоступна в этом браузере');
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        setCenter([coords.latitude, coords.longitude]);
-        notify('Карта перемещена к вашему местоположению');
-      },
-      () =>
-        notify(
-          'Не удалось получить геопозицию — проверьте разрешение браузера',
-        ),
-      { timeout: 6000 },
-    );
-  };
   const resetFilters = () => {
     setQuery('');
     setRisk('all');
     setDistrict('all');
     setIncident('all');
+    setSystem('all');
     notify('Фильтры сброшены');
   };
   return (
     <>
       <PageHead
         title="Карта инженерных объектов"
-        subtitle="Оперативная оценка риска по районам Москвы"
+        subtitle="Схема коллекторов, пикетов и инженерных систем"
         action={
           <div className="inline-actions">
             <button className="secondary-btn" onClick={exportGeoJson}>
               <Download size={16} /> GeoJSON
             </button>
-            <button className="primary-btn" onClick={locate}>
-              <LocateFixed size={16} /> Найти меня
+            <button className="primary-btn" onClick={() => notify('Телеметрия объектов обновлена')}>
+              <RefreshCcw size={16} /> Обновить
             </button>
           </div>
         }
@@ -1226,6 +1490,17 @@ function MapPage({
             placeholder="Объект, адрес или ID"
           />
         </label>
+        <select
+          className="select-btn"
+          value={system}
+          onChange={(e) => setSystem(e.target.value)}
+          aria-label="Инженерная система"
+        >
+          <option value="all">Все инженерные системы</option>
+          {[...new Set(mapObjects.map((x) => x.system))].map((x) => (
+            <option key={x}>{x}</option>
+          ))}
+        </select>
         <select
           className="select-btn"
           value={incident}
@@ -1269,7 +1544,7 @@ function MapPage({
         <div className="real-map-wrap">
           <InteractiveMap
             objects={filtered}
-            center={center}
+            selectedId={selected.id}
             onSelect={setSelectedId}
           />
           {filtered.length === 0 && (
@@ -1277,25 +1552,6 @@ function MapPage({
               По выбранным условиям объектов не найдено
             </div>
           )}
-          <div className="map-legend">
-            <strong>Уровень риска</strong>
-            <span>
-              <i className="dot critical" />
-              Критический · 3
-            </span>
-            <span>
-              <i className="dot high" />
-              Высокий · 12
-            </span>
-            <span>
-              <i className="dot medium" />
-              Средний · 46
-            </span>
-            <span>
-              <i className="dot low" />
-              Низкий · 1 186
-            </span>
-          </div>
         </div>
         <aside className="object-card">
           <div className="object-image">
@@ -1310,14 +1566,15 @@ function MapPage({
             </span>
             <h3>{selected.name}</h3>
             <p>{selected.address}</p>
+            <p className="object-system">{selected.system} · ПК {selected.picketFrom}—{selected.picketTo}</p>
             <div className="object-stats">
               <div>
-                <span>Оборудование</span>
-                <strong>18 ед.</strong>
+                <span>Связь</span>
+                <strong>{selected.connection}</strong>
               </div>
               <div>
                 <span>Датчики</span>
-                <strong>42 онлайн</strong>
+                <strong>{selected.onlineSensors} из {selected.sensors}</strong>
               </div>
             </div>
             <div className="object-alert">
@@ -1329,9 +1586,10 @@ function MapPage({
             </div>
             <button
               className="primary-btn full"
-              onClick={() => go('predictions', selected.id)}
+              disabled={!selected.predictionId}
+              onClick={() => selected.predictionId && go('predictions', selected.predictionId)}
             >
-              Открыть прогноз <ChevronRight size={16} />
+              {selected.predictionId ? 'Открыть прогноз' : 'Активного прогноза нет'} <ChevronRight size={16} />
             </button>
           </div>
         </aside>
@@ -1343,11 +1601,14 @@ function MapPage({
 function Predictions({
   go,
   notify,
+  user,
 }: {
   go: (s: Section, id?: string) => void;
   notify: (s: string) => void;
+  user: UserAccount;
 }) {
   const [page, setPage] = useState(1);
+  const visiblePredictions = predictions.filter((prediction) => user.district === 'Все округа' || prediction.district === user.district);
   const changePage = (next: number) => {
     setPage(Math.max(1, Math.min(23, next)));
     notify(`Открыта страница ${Math.max(1, Math.min(23, next))}`);
@@ -1355,7 +1616,7 @@ function Predictions({
   const exportRows = () => {
     const csv = [
       'ID;Объект;Инцидент;Вероятность;Риск;Горизонт',
-      ...predictions.map(
+      ...visiblePredictions.map(
         (p) =>
           `${p.id};${p.object};${p.type};${p.probability}%;${p.risk};${p.horizon}`,
       ),
@@ -1367,7 +1628,7 @@ function Predictions({
     <>
       <PageHead
         title="Прогнозы инцидентов"
-        subtitle="184 прогноза за последние 24 часа"
+        subtitle={`${visiblePredictions.length} активных прогнозов · область: ${user.district}`}
         action={
           <button className="secondary-btn" onClick={exportRows}>
             <Download size={16} /> Экспорт
@@ -1376,11 +1637,11 @@ function Predictions({
       />
       <div className="panel table-panel">
         <PredictionTable
-          rows={predictions}
+          rows={visiblePredictions}
           onRow={(id) => go('predictions', id)}
         />
         <div className="pagination">
-          <span>Страница {page} · показано 5 из 184</span>
+          <span>Страница {page} · показано {visiblePredictions.length}</span>
           <div>
             <button disabled={page === 1} onClick={() => changePage(page - 1)}>
               Назад
@@ -1486,13 +1747,16 @@ function PredictionDetail({
   dispatcher: UserAccount;
 }) {
   const [decision, setDecision] = useState('');
+  const [reasonCategory, setReasonCategory] = useState('');
   const [reason, setReason] = useState('');
   const [saved, setSaved] = useState(false);
   const [sensor, setSensor] = useState<'temp' | 'vibration' | 'pressure'>(
     'temp',
   );
   const [menu, setMenu] = useState(false);
+  const [claimedBy, setClaimedBy] = useState('');
   const p = predictions.find((x) => x.id === id) || predictions[0];
+  const context = predictionContexts[p.id] || defaultPredictionContext;
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem(
@@ -1502,14 +1766,29 @@ function PredictionDetail({
       const savedDecision = JSON.parse(stored) as {
         decision: string;
         comment: string;
+        reasonCategory?: string;
       };
       setDecision(savedDecision.decision);
       setReason(savedDecision.comment);
+      setReasonCategory(savedDecision.reasonCategory || 'Другое');
       setSaved(true);
     } catch {
       // Keep the prediction available if browser storage is disabled.
     }
   }, [p.id]);
+  useEffect(() => {
+    try {
+      setClaimedBy(window.localStorage.getItem(`moscollector-claim-${p.id}`) || '');
+    } catch {
+      setClaimedBy('');
+    }
+  }, [p.id]);
+  const claimPrediction = () => {
+    try { window.localStorage.setItem(`moscollector-claim-${p.id}`, dispatcher.name); } catch { /* demo session remains usable */ }
+    setClaimedBy(dispatcher.name);
+    notify(`Прогноз ${p.id} принят в работу`);
+  };
+  const readOnly = Boolean(claimedBy && claimedBy !== dispatcher.name);
   const sensorConfig = {
     temp: {
       label: 'Температура',
@@ -1534,8 +1813,16 @@ function PredictionDetail({
     },
   }[sensor];
   const save = () => {
+    if (readOnly) {
+      notify(`Прогноз уже обрабатывает ${claimedBy}`);
+      return;
+    }
     if (!decision) {
       notify('Выберите решение диспетчера');
+      return;
+    }
+    if (!reasonCategory) {
+      notify('Выберите основание решения');
       return;
     }
     const dispatcherComment = reason.trim();
@@ -1549,6 +1836,7 @@ function PredictionDetail({
         JSON.stringify({
           decision,
           comment: dispatcherComment,
+          reasonCategory,
           savedAt: new Date().toISOString(),
           dispatcher: dispatcher.name,
         }),
@@ -1570,7 +1858,7 @@ function PredictionDetail({
       fact: journalFact(decision),
       decision,
       dispatcher: dispatcher.name,
-      comment: dispatcherComment || 'Комментарий не указан',
+      comment: `${reasonCategory}${dispatcherComment ? ` · ${dispatcherComment}` : ''}`,
       status: journalStatus(decision),
     });
     if (decision === 'Направить бригаду') {
@@ -1603,6 +1891,8 @@ function PredictionDetail({
         sentAt: 'Только что',
         status: 'Принята',
         dispatcherComment,
+        assignedUnit: 'Аварийно-ремонтная бригада',
+        statusHistory: [{ status: 'Принята', at: 'Только что', author: dispatcher.name }],
       };
       storeSentRequests([request, ...sentRequests]);
       setSaved(true);
@@ -1629,8 +1919,22 @@ function PredictionDetail({
           </div>
           <h2>{p.type}</h2>
           <p>{p.object} · Нагатинская наб., 18, стр. 2</p>
+          <div className="prediction-meta">
+            <span>{context.objectId}</span><span>{context.system}</span><span>{context.picket}</span><span>Горизонт {p.horizon}</span>
+          </div>
         </div>
         <div className="action-menu-wrap">
+          {claimedBy ? (readOnly ? (
+            <span className="claim-badge locked"><ShieldCheck size={15} />Обрабатывает {claimedBy}</span>
+          ) : (
+            <button className="claim-badge" onClick={() => {
+              try { window.localStorage.removeItem(`moscollector-claim-${p.id}`); } catch { /* keep current session usable */ }
+              setClaimedBy('');
+              notify(`Прогноз ${p.id} освобождён`);
+            }}><ShieldCheck size={15} />Вы обрабатываете · освободить</button>
+          )) : (
+            <button className="secondary-btn" onClick={claimPrediction}><Users size={16} />Принять в работу</button>
+          )}
           <button
             className="icon-btn"
             onClick={() => setMenu(!menu)}
@@ -1709,7 +2013,7 @@ function PredictionDetail({
               </div>
             </div>
             <div className="sensor-chart">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 800, height: 260 }}>
                 <AreaChart data={sensorData}>
                   <defs>
                     <linearGradient id="tempFill" x1="0" y1="0" x2="0" y2="1">
@@ -1744,6 +2048,36 @@ function PredictionDetail({
               </ResponsiveContainer>
             </div>
           </section>
+          <section className="panel explain-panel">
+            <PanelHead title="Почему сформирован прогноз" subtitle="Факторы показаны для проверки диспетчером" />
+            <div className="explain-summary">
+              <div><span>Вероятность</span><strong>{p.probability}%</strong></div>
+              <div><span>Источники</span><strong>{context.sources.join(' · ')}</strong></div>
+              <div><span>Расчёт</span><strong>{context.modelVersion}</strong></div>
+            </div>
+            <div className="factor-list">
+              {context.factors.map((factor) => (
+                <div className="factor-row" key={factor.label}>
+                  <div className="factor-copy"><strong>{factor.label}</strong><small>{factor.note}</small></div>
+                  <span>{factor.value}</span>
+                  <div className="factor-impact"><i style={{ width: `${factor.impact}%` }} /><b>{factor.impact}%</b></div>
+                </div>
+              ))}
+            </div>
+            <div className="historical-note"><ShieldCheck size={18} /><span><strong>Историческое сопоставление</strong>{context.historicalMatch}</span></div>
+          </section>
+          <section className="panel signal-chain-panel">
+            <PanelHead title="Связанные сигналы" subtitle="Один прогноз объединяет последовательность событий" />
+            <div className="signal-chain">
+              {context.relatedSignals.map((signal, index) => (
+                <div key={`${signal.channel}-${signal.time}`}>
+                  <span className="signal-order">{index + 1}</span>
+                  <span><strong>{signal.event}</strong><small>{signal.time} · {signal.channel}</small></span>
+                  <b>{signal.state}</b>
+                </div>
+              ))}
+            </div>
+          </section>
           <section className="panel">
             <PanelHead
               title="Решение диспетчера"
@@ -1754,9 +2088,12 @@ function PredictionDetail({
                 ['Направить бригаду', Send],
                 ['Продолжить мониторинг', Activity],
                 ['Ложное срабатывание', X],
+                ['Передать ответственному', Users],
+                ['Закрыть после проверки', Check],
               ].map(([x, I]: any) => (
                 <button
                   key={x}
+                  disabled={readOnly}
                   className={decision === x ? 'active' : ''}
                   onClick={() => {
                     setDecision(x);
@@ -1769,7 +2106,23 @@ function PredictionDetail({
                 </button>
               ))}
             </div>
+            <select
+              disabled={readOnly}
+              className="decision-reason-select"
+              value={reasonCategory}
+              onChange={(event) => { setReasonCategory(event.target.value); setSaved(false); }}
+              aria-label="Основание решения"
+            >
+              <option value="">Выберите основание решения</option>
+              <option>Подтверждено связанными датчиками</option>
+              <option>Требуется визуальная проверка</option>
+              <option>Проверено по камере</option>
+              <option>Неисправность датчика или линии</option>
+              <option>Плановые работы на объекте</option>
+              <option>Другое</option>
+            </select>
             <textarea
+              disabled={readOnly}
               value={reason}
               onChange={(e) => {
                 setReason(e.target.value);
@@ -1782,7 +2135,7 @@ function PredictionDetail({
                 <ShieldCheck size={17} /> Рекомендация сформирована системой.
                 Окончательное решение принимает диспетчер.
               </p>
-              <button className="primary-btn" onClick={save}>
+              <button className="primary-btn" onClick={save} disabled={readOnly}>
                 {saved ? (
                   <>
                     <Check size={16} /> Сохранено
@@ -1800,6 +2153,7 @@ function PredictionDetail({
                   <b>Комментарий диспетчера:</b>{' '}
                   {reason.trim() || 'Комментарий не указан'}
                 </p>
+                <p><b>Основание:</b> {reasonCategory}</p>
               </div>
             )}
           </section>
@@ -1960,6 +2314,7 @@ function Incidents({ notify }: { notify: (s: string) => void }) {
             <option>В работе</option>
             <option>Закрыт</option>
             <option>Наблюдение</option>
+            <option>Передан</option>
           </select>
         </div>
         <div className="table-scroll">
@@ -2027,6 +2382,7 @@ function EquipmentPage({
 }) {
   const [query, setQuery] = useState('');
   const [state, setState] = useState('Все состояния');
+  const [importInfo, setImportInfo] = useState('');
   const visibleEquipment = equipment.filter(
     (item) =>
       (state === 'Все состояния' || item.state === state) &&
@@ -2045,17 +2401,37 @@ function EquipmentPage({
     downloadFile('equipment.csv', `\uFEFF${csv}`, 'text/csv;charset=utf-8');
     notify('Реестр оборудования выгружен');
   };
+  const importRegistry = (file?: File) => {
+    if (!file) return;
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    if (!['csv', 'xlsx'].includes(extension || '')) {
+      notify('Поддерживаются только CSV и XLSX');
+      return;
+    }
+    if (extension === 'csv') {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const count = String(reader.result || '').split(/\r?\n/).filter(Boolean).length - 1;
+        setImportInfo(`${file.name} · найдено записей: ${Math.max(0, count)} · ожидает подтверждения`);
+        notify('CSV проверен и подготовлен к импорту');
+      };
+      reader.readAsText(file);
+    } else {
+      setImportInfo(`${file.name} · XLSX принят · обработка будет выполнена серверным импортёром`);
+      notify('XLSX подготовлен к передаче в API импорта');
+    }
+  };
   return (
     <>
       <PageHead
         title="Оборудование"
         subtitle="12 472 единицы на 1 247 объектах"
-        action={
-          <button className="secondary-btn" onClick={exportEquipment}>
-            <Download size={16} /> Экспорт реестра
-          </button>
-        }
+        action={<div className="inline-actions">
+          <label className="secondary-btn file-btn"><input type="file" accept=".csv,.xlsx" onChange={(event) => importRegistry(event.target.files?.[0])} />Импорт CSV/XLSX</label>
+          <button className="secondary-btn" onClick={exportEquipment}><Download size={16} /> Экспорт реестра</button>
+        </div>}
       />
+      {importInfo && <div className="import-status"><Activity size={17} /><span><strong>Проверка файла завершена</strong>{importInfo}</span><button onClick={() => setImportInfo('')}>Закрыть</button></div>}
       <div className="metric-grid four">
         <Metric
           icon={ShieldCheck}
@@ -2250,7 +2626,7 @@ function EquipmentDetail({
             subtitle="Температура · последние 12 часов"
           />
           <div className="chart-wrap large-chart">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 800, height: 280 }}>
               <LineChart data={sensorData}>
                 <CartesianGrid vertical={false} stroke="#eeedf3" />
                 <XAxis dataKey="t" axisLine={false} />
@@ -2352,19 +2728,25 @@ function TimelineItem({
   );
 }
 
-function Maintenance({ notify }: { notify: (s: string) => void }) {
+function Maintenance({ notify, user }: { notify: (s: string) => void; user: UserAccount }) {
   const [sent, setSent] = useState<SentRequest[]>(initialSentRequests);
+  const [archived, setArchived] = useState<ArchivedRequest[]>([]);
+  const [responseDrafts, setResponseDrafts] = useState<Record<string, string>>({});
   const [expanded, setExpanded] = useState<string | null>(null);
   const [openedRequest, setOpenedRequest] = useState<string | null>(null);
+  const isTechnician = user.role === 'technician';
   useEffect(() => {
     try {
       setSent(loadSentRequests());
+      setArchived(loadArchivedRequests());
     } catch {
       // The default list remains available if browser storage is disabled.
     }
   }, []);
-  const sentRecommendationIds = new Set(sent.map((item) => item.id));
-  const proposals = maintenanceJobs.filter(
+  const sentRecommendationIds = new Set(
+    [...sent, ...archived].map((item) => item.id),
+  );
+  const proposals = isTechnician ? [] : maintenanceJobs.filter(
     (job) => !sentRecommendationIds.has(job.id),
   );
   const sendRequest = (job: (typeof maintenanceJobs)[number]) => {
@@ -2374,6 +2756,8 @@ function Maintenance({ notify }: { notify: (s: string) => void }) {
         requestId: `RQ-${1086 + sent.length + 1}`,
         sentAt: 'Только что',
         status: 'Отправлена',
+        assignedUnit: 'Эксплуатационное подразделение',
+        statusHistory: [{ status: 'Отправлена', at: 'Только что', author: user.name }],
       },
       ...sent,
     ];
@@ -2381,13 +2765,85 @@ function Maintenance({ notify }: { notify: (s: string) => void }) {
     storeSentRequests(nextSent);
     notify(`Заявка по объекту «${job.object}» отправлена`);
   };
+  const updateRequestStatus = (requestId: string, status: string) => {
+    const at = new Date().toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    const next = sent.map((request) => request.requestId === requestId ? {
+      ...request,
+      status,
+      statusHistory: [...(request.statusHistory || []), { status, at, author: user.name }],
+    } : request);
+    setSent(next);
+    storeSentRequests(next);
+    notify(`Статус заявки ${requestId}: ${status}`);
+  };
+
+  const closeRequest = (request: SentRequest, status: 'Выполнена' | 'Отклонена') => {
+    const response = (responseDrafts[request.requestId] || '').trim();
+    if (!response) {
+      notify('Сначала напишите ответ по заявке');
+      return;
+    }
+
+    const archivedAt = new Date().toLocaleString('ru-RU', {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    const closedRequest: ArchivedRequest = {
+      ...request,
+      status,
+      result: response,
+      technicianResponse: response,
+      closedBy: user.name,
+      archivedAt,
+      statusHistory: [
+        ...(request.statusHistory || []),
+        { status, at: archivedAt, author: user.name },
+      ],
+    };
+    const nextSent = sent.filter((item) => item.requestId !== request.requestId);
+    const nextArchived = [closedRequest, ...archived];
+    setSent(nextSent);
+    setArchived(nextArchived);
+    setOpenedRequest(null);
+    setResponseDrafts((current) => {
+      const next = { ...current };
+      delete next[request.requestId];
+      return next;
+    });
+    storeSentRequests(nextSent);
+    storeArchivedRequests(nextArchived);
+
+    if (request.sourcePredictionId) {
+      const entries = loadJournalEntries();
+      const nextEntries = entries.map((entry) =>
+        entry.predictionId === request.sourcePredictionId
+          ? {
+              ...entry,
+              fact: status === 'Выполнена' ? 'Подтверждён' : 'Не подтверждён',
+              status: 'Закрыт',
+              comment: `${entry.comment} · Ответ техника: ${response}`,
+            }
+          : entry,
+      );
+      try {
+        window.localStorage.setItem(journalStorageKey, JSON.stringify(nextEntries));
+      } catch {
+        // The archived request still contains the technician response.
+      }
+    }
+
+    notify(`Заявка ${request.requestId} ${status.toLowerCase()} и перенесена в архив`);
+  };
   return (
     <>
       <PageHead
         title="Заявки"
         subtitle="Рекомендации системы и контроль исполнения"
       />
-      <div className="maintenance-board">
+      <div className={`maintenance-board${isTechnician ? ' technician-board' : ''}`}>
+        {!isTechnician && (
         <section className="maintenance-column">
           <div className="column-head">
             <div>
@@ -2452,11 +2908,12 @@ function Maintenance({ notify }: { notify: (s: string) => void }) {
             )}
           </div>
         </section>
+        )}
         <section className="maintenance-column">
           <div className="column-head">
             <div>
-              <h3>Принятые заявки</h3>
-              <p>Переданы эксплуатационным подразделениям</p>
+              <h3>{isTechnician ? 'Назначенные заявки' : 'Принятые заявки'}</h3>
+              <p>{isTechnician ? 'Ожидают ответа техника' : 'Переданы эксплуатационным подразделениям'}</p>
             </div>
             <span>{sent.length}</span>
           </div>
@@ -2506,7 +2963,7 @@ function Maintenance({ notify }: { notify: (s: string) => void }) {
                     </div>
                     <div>
                       <span>Подразделение</span>
-                      <strong>Аварийно-ремонтная бригада</strong>
+                      <strong>{job.assignedUnit}</strong>
                     </div>
                     <div className="request-comment">
                       <span>Комментарий диспетчера</span>
@@ -2514,6 +2971,55 @@ function Maintenance({ notify }: { notify: (s: string) => void }) {
                         {job.dispatcherComment || 'Комментарий не указан'}
                       </strong>
                     </div>
+                    {job.result && (
+                      <div className="request-comment">
+                        <span>Результат работ</span>
+                        <strong>{job.result}</strong>
+                      </div>
+                    )}
+                    <div className="request-history">
+                      <span>История статусов</span>
+                      {(job.statusHistory || []).map((event, index) => (
+                        <p key={`${event.status}-${index}`}><i /> <strong>{event.status}</strong><small>{event.at} · {event.author}</small></p>
+                      ))}
+                    </div>
+                    {isTechnician && (
+                      <div className="technician-response">
+                        <label htmlFor={`response-${job.requestId}`}>Ответ по заявке</label>
+                        <textarea
+                          id={`response-${job.requestId}`}
+                          value={responseDrafts[job.requestId] || ''}
+                          onChange={(event) => setResponseDrafts((current) => ({
+                            ...current,
+                            [job.requestId]: event.target.value,
+                          }))}
+                          placeholder="Опишите выполненные работы или причину отклонения"
+                          rows={3}
+                        />
+                        <div className="technician-actions">
+                          {job.status !== 'В работе' && (
+                            <button
+                              className="secondary-btn"
+                              onClick={() => updateRequestStatus(job.requestId, 'В работе')}
+                            >
+                              Принять в работу
+                            </button>
+                          )}
+                          <button
+                            className="primary-btn"
+                            onClick={() => closeRequest(job, 'Выполнена')}
+                          >
+                            Выполнено
+                          </button>
+                          <button
+                            className="secondary-btn reject-btn"
+                            onClick={() => closeRequest(job, 'Отклонена')}
+                          >
+                            Отклонить
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
                 <div>
@@ -2540,9 +3046,51 @@ function Maintenance({ notify }: { notify: (s: string) => void }) {
                 </div>
               </article>
             ))}
+            {sent.length === 0 && (
+              <div className="column-empty">
+                <Check size={22} />
+                <strong>Активных заявок нет</strong>
+                <span>Все назначенные заявки обработаны</span>
+              </div>
+            )}
           </div>
         </section>
       </div>
+      <section className="panel request-archive">
+        <PanelHead
+          title="Архив заявок"
+          subtitle={isTechnician ? 'Ваши завершённые ответы' : 'Ответы эксплуатационных подразделений'}
+        />
+        <div className="archive-list">
+          {archived
+            .filter((request) => !isTechnician || request.closedBy === user.name)
+            .map((request) => (
+              <article className="archive-row" key={`${request.requestId}-${request.archivedAt}`}>
+                <div>
+                  <span className="object-id">{request.requestId}</span>
+                  <strong>{request.title}</strong>
+                  <small>{request.object}</small>
+                </div>
+                <div className="archive-response">
+                  <span>Ответ техника</span>
+                  <p>{request.technicianResponse}</p>
+                </div>
+                <div className="archive-meta">
+                  <strong className={request.status === 'Выполнена' ? 'archive-success' : 'archive-rejected'}>
+                    {request.status}
+                  </strong>
+                  <small>{request.archivedAt} · {request.closedBy}</small>
+                </div>
+              </article>
+            ))}
+          {archived.filter((request) => !isTechnician || request.closedBy === user.name).length === 0 && (
+            <div className="column-empty compact">
+              <strong>Архив пока пуст</strong>
+              <span>Завершённые заявки появятся здесь</span>
+            </div>
+          )}
+        </div>
+      </section>
     </>
   );
 }
@@ -2643,7 +3191,7 @@ function Analytics({ notify }: { notify: (s: string) => void }) {
             </span>
           </div>
           <div className="chart-wrap large-chart">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 800, height: 280 }}>
               <LineChart data={analyticsMonths}>
                 <CartesianGrid vertical={false} stroke="#eeedf3" />
                 <XAxis dataKey="m" axisLine={false} />
@@ -2661,7 +3209,7 @@ function Analytics({ notify }: { notify: (s: string) => void }) {
             subtitle="Доля от всех прогнозов"
           />
           <div className="donut-wrap">
-            <ResponsiveContainer width="100%" height={210}>
+            <ResponsiveContainer width="100%" height={210} minWidth={0} initialDimension={{ width: 420, height: 210 }}>
               <PieChart>
                 <Pie
                   data={riskData}
@@ -2744,10 +3292,30 @@ function AdminPanel({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState<Exclude<UserRole, 'admin'>>('central_dispatcher');
+  const [unit, setUnit] = useState('Центральная ОДС');
+  const [district, setDistrict] = useState('Все округа');
+  const [active, setActive] = useState(true);
   const [message, setMessage] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [refreshInterval, setRefreshInterval] = useState('5');
+  const [claimLock, setClaimLock] = useState(true);
+  const [criticalNotifications, setCriticalNotifications] = useState(true);
 
-  useEffect(() => setAccounts(loadDispatcherAccounts()), []);
+  useEffect(() => {
+    setAccounts(loadDispatcherAccounts());
+    try {
+      const stored = window.localStorage.getItem('moscollector-ui-settings');
+      if (stored) {
+        const settings = JSON.parse(stored) as { refreshInterval?: string; claimLock?: boolean; criticalNotifications?: boolean };
+        if (settings.refreshInterval) setRefreshInterval(settings.refreshInterval);
+        if (typeof settings.claimLock === 'boolean') setClaimLock(settings.claimLock);
+        if (typeof settings.criticalNotifications === 'boolean') setCriticalNotifications(settings.criticalNotifications);
+      }
+    } catch {
+      // Keep default demo settings when browser storage is unavailable.
+    }
+  }, []);
 
   const saveAccount = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -2764,11 +3332,14 @@ function AdminPanel({
       return;
     }
     const account: UserAccount = {
-      id: editingId || `dispatcher-${Date.now()}`,
+      id: editingId || `user-${Date.now()}`,
       name: name.trim(),
       email: normalizedEmail,
       password,
-      role: 'dispatcher',
+      role,
+      unit: unit.trim(),
+      district,
+      active,
     };
     const next = editingId
       ? accounts.map((item) => (item.id === editingId ? account : item))
@@ -2778,6 +3349,10 @@ function AdminPanel({
     setName('');
     setEmail('');
     setPassword('');
+    setRole('central_dispatcher');
+    setUnit('Центральная ОДС');
+    setDistrict('Все округа');
+    setActive(true);
     setEditingId(null);
     setMessage(
       editingId
@@ -2791,6 +3366,10 @@ function AdminPanel({
     setName(account.name);
     setEmail(account.email);
     setPassword(account.password);
+    setRole(account.role === 'admin' ? 'central_dispatcher' : account.role);
+    setUnit(account.unit);
+    setDistrict(account.district);
+    setActive(account.active);
     setMessage(`Редактирование аккаунта ${account.name}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -2800,6 +3379,10 @@ function AdminPanel({
     setName('');
     setEmail('');
     setPassword('');
+    setRole('central_dispatcher');
+    setUnit('Центральная ОДС');
+    setDistrict('Все округа');
+    setActive(true);
     setMessage('Редактирование отменено');
   };
 
@@ -2842,8 +3425,8 @@ function AdminPanel({
       </header>
       <main className="admin-content">
         <PageHead
-          title="Аккаунты диспетчеров"
-          subtitle="Создание, редактирование и удаление учётных записей"
+          title="Пользователи и доступ"
+          subtitle="Роли, подразделения и области ответственности"
         />
         {message && <div className="admin-message">{message}</div>}
         <div className="admin-grid">
@@ -2853,7 +3436,7 @@ function AdminPanel({
                 <UserPlus size={20} />
               </span>
               <div>
-                <h3>{editingId ? 'Редактирование' : 'Новый диспетчер'}</h3>
+                <h3>{editingId ? 'Редактирование' : 'Новый пользователь'}</h3>
                 <p>
                   {editingId
                     ? 'Измените данные учётной записи'
@@ -2869,6 +3452,28 @@ function AdminPanel({
                 placeholder="Например, Иван Орлов"
                 required
               />
+            </label>
+            <label>
+              <span>Роль</span>
+              <select value={role} onChange={(event) => setRole(event.target.value as Exclude<UserRole, 'admin'>)}>
+                <option value="central_dispatcher">Диспетчер ОДС</option>
+                <option value="district_dispatcher">Районный диспетчер</option>
+                <option value="technician">Технический специалист</option>
+              </select>
+            </label>
+            <label>
+              <span>Подразделение</span>
+              <input value={unit} onChange={(event) => setUnit(event.target.value)} required />
+            </label>
+            <label>
+              <span>Область доступа</span>
+              <select value={district} onChange={(event) => setDistrict(event.target.value)}>
+                <option>Все округа</option><option>ЦАО</option><option>ЮАО</option><option>СВАО</option><option>ЮВАО</option><option>ЗАО</option>
+              </select>
+            </label>
+            <label className="admin-active-check">
+              <input type="checkbox" checked={active} onChange={(event) => setActive(event.target.checked)} />
+              <span>Учётная запись активна</span>
             </label>
             <label>
               <span>Рабочая почта</span>
@@ -2913,8 +3518,8 @@ function AdminPanel({
                 <Users size={20} />
               </span>
               <div>
-                <h3>Диспетчеры</h3>
-                <p>Активных аккаунтов: {accounts.length}</p>
+                <h3>Пользователи</h3>
+                <p>Активных аккаунтов: {accounts.filter((account) => account.active).length} из {accounts.length}</p>
               </div>
             </div>
             <div className="account-list">
@@ -2929,9 +3534,11 @@ function AdminPanel({
                   </span>
                   <span className="account-copy">
                     <strong>{account.name}</strong>
-                    <small>{account.email}</small>
+                    <small>{account.email} · {account.unit}</small>
                   </span>
-                  <span className="status-badge">Диспетчер</span>
+                  <span className={`status-badge ${account.active ? 'status-success' : 'status-neutral'}`}>
+                    {account.active ? roleLabels[account.role] : 'Заблокирован'}
+                  </span>
                   <button
                     className="edit-account"
                     onClick={() => editAccount(account)}
@@ -2951,9 +3558,49 @@ function AdminPanel({
               {accounts.length === 0 && (
                 <div className="column-empty">
                   <Users size={22} />
-                  <strong>Нет аккаунтов диспетчеров</strong>
+                  <strong>Нет пользовательских аккаунтов</strong>
                 </div>
               )}
+            </div>
+          </section>
+        </div>
+        <div className="admin-config-grid">
+          <section className="panel admin-config-card">
+            <div className="admin-section-head">
+              <span className="metric-icon green"><Activity size={20} /></span>
+              <div><h3>Интеграции</h3><p>Состояние демонстрационного контура</p></div>
+            </div>
+            <div className="integration-list">
+              <div><span><i className="source-ok" />СМВУ</span><b>Демо-поток · read-only</b></div>
+              <div><span><i className="source-ok" />Реестр оборудования</span><b>Синхронизирован</b></div>
+              <div><span><i className="source-mock" />Журнал ОДС</span><b>Имитатор REST API</b></div>
+              <div><span><i className="source-mock" />Система заявок</span><b>Имитатор REST API</b></div>
+              <div><span><i className="source-wait" />ML API</span><b>Ожидает подключения</b></div>
+            </div>
+          </section>
+          <section className="panel admin-config-card">
+            <div className="admin-section-head">
+              <span className="metric-icon purple"><SlidersHorizontal size={20} /></span>
+              <div><h3>Рабочие параметры</h3><p>Настройки диспетчерского интерфейса</p></div>
+            </div>
+            <label><span>Обновление телеметрии</span><select value={refreshInterval} onChange={(event) => setRefreshInterval(event.target.value)}><option value="1">Каждую минуту</option><option value="5">Каждые 5 минут</option><option value="15">Каждые 15 минут</option><option value="manual">Вручную</option></select></label>
+            <label className="settings-check"><input type="checkbox" checked={claimLock} onChange={(event) => setClaimLock(event.target.checked)} /><span><strong>Блокировка обработки</strong><small>После принятия инцидента остальные пользователи видят его только для чтения</small></span></label>
+            <label className="settings-check"><input type="checkbox" checked={criticalNotifications} onChange={(event) => setCriticalNotifications(event.target.checked)} /><span><strong>Критические уведомления</strong><small>Показывать уведомления внутри приложения</small></span></label>
+            <button className="primary-btn" onClick={() => {
+              window.localStorage.setItem('moscollector-ui-settings', JSON.stringify({ refreshInterval, claimLock, criticalNotifications }));
+              setMessage('Рабочие параметры сохранены');
+            }}><Check size={16} />Сохранить параметры</button>
+          </section>
+          <section className="panel admin-config-card audit-card">
+            <div className="admin-section-head">
+              <span className="metric-icon yellow"><ShieldCheck size={20} /></span>
+              <div><h3>Аудит действий</h3><p>Последние события демонстрационного стенда</p></div>
+            </div>
+            <div className="audit-list">
+              <p><strong>Вход администратора</strong><span>Только что · {user.name}</span></p>
+              <p><strong>Синхронизация реестра</strong><span>12 минут назад · системное событие</span></p>
+              <p><strong>Изменён статус заявки RQ-1086</strong><span>Сегодня, 08:05 · Бригада №7</span></p>
+              <p><strong>Создано решение по PR-2491</strong><span>Сегодня, 07:48 · диспетчер ОДС</span></p>
             </div>
           </section>
         </div>
@@ -3030,7 +3677,8 @@ function Login({
                   item.password === password,
               );
               setLoading(false);
-              if (account) onLogin(account);
+              if (account?.active) onLogin(account);
+              else if (account && !account.active) setError('Учётная запись заблокирована администратором');
               else setError('Неверная почта или пароль');
             }, 450);
           }}
@@ -3043,7 +3691,7 @@ function Login({
           </div>
           <p className="eyebrow">Защищённый доступ</p>
           <h2>Вход в систему</h2>
-          <p>Используйте корпоративную учётную запись.</p>
+          <p>Используйте корпоративную учётную запись. На GitHub Pages работает демонстрационный контур.</p>
           <label>
             <span>Рабочая почта</span>
             <input
@@ -3078,17 +3726,21 @@ function Login({
             </div>
           )}
           {error && <div className="login-error">{error}</div>}
-          <button
-            className="admin-login-hint"
-            type="button"
-            onClick={() => {
-              setEmail(adminAccount.email);
-              setPassword(adminAccount.password);
-              setError('');
-            }}
-          >
-            Войти как администратор
-          </button>
+          <div className="demo-login-list">
+            <span>Демо-роли</span>
+            {[
+              ['ОДС', defaultDispatcherAccounts[0]],
+              ['Район', defaultDispatcherAccounts[1]],
+              ['Техник', defaultDispatcherAccounts[2]],
+              ['Админ', adminAccount],
+            ].map(([label, account]) => (
+              <button key={(account as UserAccount).id} type="button" onClick={() => {
+                setEmail((account as UserAccount).email);
+                setPassword((account as UserAccount).password);
+                setError('');
+              }}>{label as string}</button>
+            ))}
+          </div>
           <button className="primary-btn login-submit" disabled={loading}>
             {loading ? 'Проверяем данные…' : 'Войти в систему'}
             <ChevronRight size={17} />
