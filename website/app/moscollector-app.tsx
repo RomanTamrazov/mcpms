@@ -62,11 +62,7 @@ const InteractiveMap = dynamic(() => import('./interactive-map'), {
 });
 
 type Risk = 'Критический' | 'Высокий' | 'Средний' | 'Низкий';
-type UserRole =
-  | 'admin'
-  | 'central_dispatcher'
-  | 'district_dispatcher'
-  | 'technician';
+type UserRole = 'dispatcher' | 'technician' | 'manager';
 type Section =
   | 'dashboard'
   | 'map'
@@ -88,19 +84,18 @@ type UserAccount = {
 };
 
 const roleLabels: Record<UserRole, string> = {
-  admin: 'Администратор',
-  central_dispatcher: 'Диспетчер ОДС',
-  district_dispatcher: 'Районный диспетчер',
-  technician: 'Технический специалист',
+  dispatcher: 'Диспетчер ОДС или эксплуатационного подразделения',
+  technician: 'Технический персонал по обслуживанию коллекторов',
+  manager: 'Руководитель эксплуатационного подразделения',
 };
 
-const adminAccount: UserAccount = {
+const managerAccount: UserAccount = {
   id: 'admin',
-  name: 'Администратор системы',
+  name: 'Руководитель подразделения',
   email: 'admin@moscollector.ru',
   password: 'admin2026',
-  role: 'admin',
-  unit: 'Управление цифровых систем',
+  role: 'manager',
+  unit: 'Эксплуатационное подразделение',
   district: 'Все округа',
   active: true,
 };
@@ -111,7 +106,7 @@ const defaultDispatcherAccounts: UserAccount[] = [
     name: 'Анна Крылова',
     email: 'dispatcher@moscollector.ru',
     password: 'monitoring2026',
-    role: 'central_dispatcher',
+    role: 'dispatcher',
     unit: 'Центральная ОДС',
     district: 'Все округа',
     active: true,
@@ -121,7 +116,7 @@ const defaultDispatcherAccounts: UserAccount[] = [
     name: 'Михаил Орлов',
     email: 'south@moscollector.ru',
     password: 'monitoring2026',
-    role: 'district_dispatcher',
+    role: 'dispatcher',
     unit: 'Эксплуатационный район №3',
     district: 'ЮАО',
     active: true,
@@ -153,26 +148,27 @@ function loadDispatcherAccounts() {
     const stored = window.localStorage.getItem(accountsStorageKey);
     if (!stored) return defaultDispatcherAccounts;
     const normalized = (JSON.parse(stored) as Array<Partial<UserAccount> & Pick<UserAccount, 'id' | 'name' | 'email' | 'password'>>)
-      .filter((account) => String(account.role) !== 'manager')
       .map(
       (account) => ({
         ...account,
         role:
-          account.role === ('dispatcher' as UserRole) || !account.role
-            ? 'central_dispatcher'
-            : account.role,
+          String(account.role) === 'technician'
+            ? 'technician'
+            : String(account.role) === 'manager' || String(account.role) === 'admin'
+              ? 'manager'
+              : 'dispatcher',
         unit: account.unit || 'Центральная ОДС',
         district: account.district || 'Все округа',
         active: account.active !== false,
       }) as UserAccount,
     );
-    if (window.localStorage.getItem(accountsStorageVersionKey) !== '3') {
+    if (window.localStorage.getItem(accountsStorageVersionKey) !== '4') {
       const migrated = [
         ...normalized,
         ...defaultDispatcherAccounts.filter((demo) => !normalized.some((account) => account.email.toLowerCase() === demo.email.toLowerCase())),
       ];
       window.localStorage.setItem(accountsStorageKey, JSON.stringify(migrated));
-      window.localStorage.setItem(accountsStorageVersionKey, '3');
+      window.localStorage.setItem(accountsStorageVersionKey, '4');
       return migrated;
     }
     return normalized;
@@ -184,7 +180,7 @@ function loadDispatcherAccounts() {
 function storeDispatcherAccounts(accounts: UserAccount[]) {
   try {
     window.localStorage.setItem(accountsStorageKey, JSON.stringify(accounts));
-    window.localStorage.setItem(accountsStorageVersionKey, '3');
+    window.localStorage.setItem(accountsStorageVersionKey, '4');
   } catch {
     // Keep account management usable for the current session.
   }
@@ -203,7 +199,7 @@ function loadCurrentUser() {
   try {
     const userId = window.localStorage.getItem(sessionStorageKey);
     if (!userId) return null;
-    const account = [adminAccount, ...loadDispatcherAccounts()].find(
+    const account = [managerAccount, ...loadDispatcherAccounts()].find(
       (account) => account.id === userId,
     );
     return account?.active ? account : null;
@@ -222,9 +218,8 @@ const nav: { id: Section; label: string; icon: typeof LayoutDashboard }[] = [
   { id: 'analytics', label: 'Аналитика', icon: BarChart3 },
 ];
 
-const roleSections: Record<Exclude<UserRole, 'admin'>, Section[]> = {
-  central_dispatcher: ['dashboard', 'map', 'predictions', 'incidents', 'equipment', 'maintenance', 'analytics'],
-  district_dispatcher: ['dashboard', 'map', 'predictions', 'incidents', 'equipment', 'maintenance'],
+const roleSections: Record<Exclude<UserRole, 'manager'>, Section[]> = {
+  dispatcher: ['dashboard', 'map', 'predictions', 'incidents', 'equipment', 'maintenance', 'analytics'],
   technician: ['dashboard', 'map', 'equipment', 'maintenance'],
 };
 
@@ -841,14 +836,14 @@ export default function MoscollectorApp() {
       setDetail(pieces[1]);
   }, []);
   useEffect(() => {
-    if (!currentUser || currentUser.role === 'admin') return;
+    if (!currentUser || currentUser.role === 'manager') return;
     if (roleSections[currentUser.role].includes(section)) return;
     setSection('dashboard');
     setDetail(null);
     window.history.replaceState({}, '', deploymentPath('/dashboard/'));
   }, [currentUser, section]);
   const go = (next: Section, id?: string) => {
-    if (currentUser && currentUser.role !== 'admin' && !roleSections[currentUser.role].includes(next)) {
+    if (currentUser && currentUser.role !== 'manager' && !roleSections[currentUser.role].includes(next)) {
       notify('У вашей роли нет доступа к этому разделу');
       return;
     }
@@ -874,7 +869,7 @@ export default function MoscollectorApp() {
         onLogin={(user) => {
           setCurrentUser(user);
           storeCurrentUser(user);
-          if (user.role === 'admin') {
+          if (user.role === 'manager') {
             window.history.pushState({}, '', deploymentPath('/admin/'));
           } else {
             go('dashboard');
@@ -882,7 +877,7 @@ export default function MoscollectorApp() {
         }}
       />
     );
-  if (currentUser.role === 'admin') {
+  if (currentUser.role === 'manager') {
     return (
       <AdminPanel
         user={currentUser}
@@ -896,7 +891,7 @@ export default function MoscollectorApp() {
       />
     );
   }
-  const currentRole = currentUser.role as Exclude<UserRole, 'admin'>;
+  const currentRole = currentUser.role as Exclude<UserRole, 'manager'>;
   const visibleNav = nav.filter((item) => roleSections[currentRole].includes(item.id));
   return (
     <div className="app-shell">
@@ -3292,7 +3287,7 @@ function AdminPanel({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<Exclude<UserRole, 'admin'>>('central_dispatcher');
+  const [role, setRole] = useState<UserRole>('dispatcher');
   const [unit, setUnit] = useState('Центральная ОДС');
   const [district, setDistrict] = useState('Все округа');
   const [active, setActive] = useState(true);
@@ -3321,7 +3316,7 @@ function AdminPanel({
     event.preventDefault();
     const normalizedEmail = email.trim().toLowerCase();
     if (
-      normalizedEmail === adminAccount.email ||
+      normalizedEmail === managerAccount.email ||
       accounts.some(
         (account) =>
           account.id !== editingId &&
@@ -3349,7 +3344,7 @@ function AdminPanel({
     setName('');
     setEmail('');
     setPassword('');
-    setRole('central_dispatcher');
+    setRole('dispatcher');
     setUnit('Центральная ОДС');
     setDistrict('Все округа');
     setActive(true);
@@ -3366,7 +3361,7 @@ function AdminPanel({
     setName(account.name);
     setEmail(account.email);
     setPassword(account.password);
-    setRole(account.role === 'admin' ? 'central_dispatcher' : account.role);
+    setRole(account.role);
     setUnit(account.unit);
     setDistrict(account.district);
     setActive(account.active);
@@ -3379,7 +3374,7 @@ function AdminPanel({
     setName('');
     setEmail('');
     setPassword('');
-    setRole('central_dispatcher');
+    setRole('dispatcher');
     setUnit('Центральная ОДС');
     setDistrict('Все округа');
     setActive(true);
@@ -3409,14 +3404,14 @@ function AdminPanel({
           </div>
           <div>
             <strong>МосКоллектор</strong>
-            <span>Панель администратора</span>
+            <span>Панель руководителя</span>
           </div>
         </div>
         <div className="admin-profile">
           <ThemeToggle darkTheme={darkTheme} onToggle={onToggleTheme} />
           <span>
             <strong>{user.name}</strong>
-            <small>Администратор</small>
+            <small>{roleLabels[user.role]}</small>
           </span>
           <button className="secondary-btn" onClick={onLogout}>
             <LogOut size={16} /> Выйти
@@ -3455,10 +3450,10 @@ function AdminPanel({
             </label>
             <label>
               <span>Роль</span>
-              <select value={role} onChange={(event) => setRole(event.target.value as Exclude<UserRole, 'admin'>)}>
-                <option value="central_dispatcher">Диспетчер ОДС</option>
-                <option value="district_dispatcher">Районный диспетчер</option>
-                <option value="technician">Технический специалист</option>
+              <select value={role} onChange={(event) => setRole(event.target.value as UserRole)}>
+                <option value="dispatcher">Диспетчер ОДС или эксплуатационного подразделения</option>
+                <option value="technician">Технический персонал по обслуживанию коллекторов</option>
+                <option value="manager">Руководитель эксплуатационного подразделения</option>
               </select>
             </label>
             <label>
@@ -3597,7 +3592,7 @@ function AdminPanel({
               <div><h3>Аудит действий</h3><p>Последние события демонстрационного стенда</p></div>
             </div>
             <div className="audit-list">
-              <p><strong>Вход администратора</strong><span>Только что · {user.name}</span></p>
+              <p><strong>Вход руководителя</strong><span>Только что · {user.name}</span></p>
               <p><strong>Синхронизация реестра</strong><span>12 минут назад · системное событие</span></p>
               <p><strong>Изменён статус заявки RQ-1086</strong><span>Сегодня, 08:05 · Бригада №7</span></p>
               <p><strong>Создано решение по PR-2491</strong><span>Сегодня, 07:48 · диспетчер ОДС</span></p>
@@ -3671,14 +3666,14 @@ function Login({
             setLoading(true);
             setError('');
             window.setTimeout(() => {
-              const account = [adminAccount, ...loadDispatcherAccounts()].find(
+              const account = [managerAccount, ...loadDispatcherAccounts()].find(
                 (item) =>
                   item.email.toLowerCase() === email.trim().toLowerCase() &&
                   item.password === password,
               );
               setLoading(false);
               if (account?.active) onLogin(account);
-              else if (account && !account.active) setError('Учётная запись заблокирована администратором');
+              else if (account && !account.active) setError('Учётная запись заблокирована руководителем подразделения');
               else setError('Неверная почта или пароль');
             }, 450);
           }}
@@ -3721,7 +3716,7 @@ function Login({
           </div>
           {help && (
             <div className="login-message">
-              Для восстановления доступа обратитесь к администратору ОДС: доб.
+              Для восстановления доступа обратитесь к руководителю подразделения: доб.
               1420.
             </div>
           )}
@@ -3729,10 +3724,9 @@ function Login({
           <div className="demo-login-list">
             <span>Демо-роли</span>
             {[
-              ['ОДС', defaultDispatcherAccounts[0]],
-              ['Район', defaultDispatcherAccounts[1]],
-              ['Техник', defaultDispatcherAccounts[2]],
-              ['Админ', adminAccount],
+              ['Диспетчер', defaultDispatcherAccounts[0]],
+              ['Технический персонал', defaultDispatcherAccounts[2]],
+              ['Руководитель', managerAccount],
             ].map(([label, account]) => (
               <button key={(account as UserAccount).id} type="button" onClick={() => {
                 setEmail((account as UserAccount).email);
