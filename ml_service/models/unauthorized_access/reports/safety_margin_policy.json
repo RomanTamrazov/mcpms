@@ -1,0 +1,23 @@
+{
+  "selection": "maximize worst absolute margin above Precision .70 and Recall .50 across 2024 and 2025",
+  "threshold": 0.5845227230386979,
+  "development": {
+    "2024": {
+      "precision": 0.7820796460176991,
+      "recall": 0.5662039508809397,
+      "alerts": 2712
+    },
+    "2025": {
+      "precision": 0.7531216553692472,
+      "recall": 0.5534871525957,
+      "alerts": 2803
+    }
+  },
+  "development_worst_margin": 0.05312165536924729,
+  "holdout_2026H1": {
+    "precision": 0.7327021121631464,
+    "recall": 0.5426105717367853,
+    "alerts": 1373,
+    "alerts_per_day": 7.585635359116022
+  }
+}

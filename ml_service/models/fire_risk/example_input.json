@@ -1,0 +1,24 @@
+{
+  "meta": {
+    "object": 5129,
+    "as_of": "2026-02-22",
+    "features_through": "2026-02-21",
+    "eligible": true
+  },
+  "features": {
+    "smoke_channels_detected_max_30d": 1.0,
+    "days_to_next_expected": 47.333333333333336,
+    "obj_smoke_channels_total": 9.0,
+    "days_with_smoke_detect_30d": 1.0,
+    "calendar_month": 2.0,
+    "days_since_onset": 9.0,
+    "gap_mean_hist": 56.333333333333336,
+    "smoke_detect_30d": 1.0,
+    "smoke_fault_365d": 58.0,
+    "exp_decay_days_since_onset_7d": 0.27645305,
+    "smoke_last_unknown_count": 8.0,
+    "period_est_days": 56.333333333333336,
+    "smoke_fault_90d": 11.0,
+    "gap_std_hist": 18.217207982198236
+  }
+}

@@ -3,8 +3,37 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        VITE_ML_API_URL: http://localhost:8000
     ports:
       - '3000:3000'
     environment:
       NO_UPDATE_NOTIFIER: '1'
+    depends_on:
+      ml-api:
+        condition: service_healthy
     restart: unless-stopped
+
+  ml-api:
+    build:
+      context: ../ml_service
+      dockerfile: Dockerfile
+    ports:
+      - '8000:8000'
+    environment:
+      ML_CORS_ORIGINS: http://localhost:3000
+      ML_MAX_FEATURE_AGE_HOURS: '24'
+      ML_ALLOW_HISTORICAL_SCORING: '0'
+      ACCESS_FEATURE_DIR: /app/live_features
+    volumes:
+      - ml-predictions:/app/data
+      - ../ml_service/live_features:/app/live_features:ro
+    healthcheck:
+      test: ['CMD', 'python', '-c', "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  ml-predictions:

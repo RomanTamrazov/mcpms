@@ -1,0 +1,182 @@
+{
+  "5123": {
+    "name": "ДП объект Альфа",
+    "kind": "controlHouse",
+    "parent": 5,
+    "hierarchy_level": 3
+  },
+  "5124": {
+    "name": "ДП объект Альфа 2 этаж",
+    "kind": "controlHouse",
+    "parent": 5,
+    "hierarchy_level": 3
+  },
+  "5339": {
+    "name": "объект Пси",
+    "kind": "guardObject",
+    "parent": 5,
+    "hierarchy_level": 3
+  },
+  "20": {
+    "name": "объект Фита",
+    "kind": "guardObject",
+    "parent": 6,
+    "hierarchy_level": 3
+  },
+  "111": {
+    "name": "ДП объект Бета",
+    "kind": "controlHouse",
+    "parent": 6,
+    "hierarchy_level": 3
+  },
+  "165": {
+    "name": "объект Бета",
+    "kind": "guardObject",
+    "parent": 6,
+    "hierarchy_level": 3
+  },
+  "5962": {
+    "name": "объект Гамма ПС",
+    "kind": "guardObject",
+    "parent": 7,
+    "hierarchy_level": 3
+  },
+  "5113": {
+    "name": "объект Дельта",
+    "kind": "guardObject",
+    "parent": 8,
+    "hierarchy_level": 3
+  },
+  "99": {
+    "name": "ДП объект Вита",
+    "kind": "controlHouse",
+    "parent": 9,
+    "hierarchy_level": 3
+  },
+  "3902": {
+    "name": "ДП объект Эпсилон",
+    "kind": "controlHouse",
+    "parent": 11,
+    "hierarchy_level": 3
+  },
+  "5537": {
+    "name": "объект Пси ПС",
+    "kind": "guardObject",
+    "parent": 11,
+    "hierarchy_level": 3
+  },
+  "5539": {
+    "name": "объект Эпсилон ПС",
+    "kind": "guardObject",
+    "parent": 11,
+    "hierarchy_level": 3
+  },
+  "5129": {
+    "name": "объект Фита",
+    "kind": "guardObject",
+    "parent": 12,
+    "hierarchy_level": 3
+  },
+  "5132": {
+    "name": "ДП объект Зита",
+    "kind": "controlHouse",
+    "parent": 12,
+    "hierarchy_level": 3
+  },
+  "5581": {
+    "name": "объект Дзета ПС",
+    "kind": "guardObject",
+    "parent": 12,
+    "hierarchy_level": 3
+  },
+  "5583": {
+    "name": "объект Зита ПС",
+    "kind": "guardObject",
+    "parent": 12,
+    "hierarchy_level": 3
+  },
+  "5567": {
+    "name": "объект Каппа ПС",
+    "kind": "guardObject",
+    "parent": 15,
+    "hierarchy_level": 3
+  },
+  "3216": {
+    "name": "ДП объект Йота",
+    "kind": "controlHouse",
+    "parent": 3218,
+    "hierarchy_level": 3
+  },
+  "3356": {
+    "name": "ПС объект Тау",
+    "kind": "guardObject",
+    "parent": 3355,
+    "hierarchy_level": 3
+  },
+  "4392": {
+    "name": "ДП объект Омикрон",
+    "kind": "controlHouse",
+    "parent": 3359,
+    "hierarchy_level": 3
+  },
+  "5674": {
+    "name": "объект Мю ДП",
+    "kind": "controlHouse",
+    "parent": 3828,
+    "hierarchy_level": 3
+  },
+  "5677": {
+    "name": "объект Мю ПС",
+    "kind": "guardObject",
+    "parent": 3828,
+    "hierarchy_level": 3
+  },
+  "4177": {
+    "name": "ДП объект Сигма",
+    "kind": "controlHouse",
+    "parent": 4068,
+    "hierarchy_level": 3
+  },
+  "108": {
+    "name": "ДП ПС объект Ро",
+    "kind": "controlHouse",
+    "parent": 4356,
+    "hierarchy_level": 3
+  },
+  "4370": {
+    "name": "объект Ро",
+    "kind": "guardObject",
+    "parent": 4356,
+    "hierarchy_level": 3
+  },
+  "4574": {
+    "name": "ДП ПС объект Омега",
+    "kind": "controlHouse",
+    "parent": 4573,
+    "hierarchy_level": 3
+  },
+  "4648": {
+    "name": "ПС объект Омега",
+    "kind": "guardObject",
+    "parent": 4573,
+    "hierarchy_level": 3
+  },
+  "5332": {
+    "name": "объект Кси ПК0-ПК202",
+    "kind": "guardObject",
+    "parent": 5327,
+    "hierarchy_level": 3
+  },
+  "5336": {
+    "name": "ДП объект Кси",
+    "kind": "controlHouse",
+    "parent": 5327,
+    "hierarchy_level": 3
+  },
+  "5343": {
+    "name": "объект Кси ПК202-ПК302",
+    "kind": "guardObject",
+    "parent": 5327,
+    "hierarchy_level": 3
+  }
+}

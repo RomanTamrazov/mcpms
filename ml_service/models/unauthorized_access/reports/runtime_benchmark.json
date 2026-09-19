@@ -1,0 +1,124 @@
+{
+  "protocol": {
+    "warmup_runs": 1,
+    "measured_repetitions": 7,
+    "scope": "full 30-site and 1,031-zone batch, including feature reads and model loads"
+  },
+  "latency": {
+    "total": {
+      "mean_seconds": 2.1907411488770907,
+      "median_seconds": 2.0834700418636203,
+      "p95_seconds": 2.468575396249071,
+      "min_seconds": 2.052901125047356,
+      "max_seconds": 2.503232334041968
+    },
+    "site": {
+      "mean_seconds": 2.0646714285714287,
+      "median_seconds": 1.9519,
+      "p95_seconds": 2.34609,
+      "min_seconds": 1.938,
+      "max_seconds": 2.3895
+    },
+    "zone": {
+      "mean_seconds": 0.12334285714285716,
+      "median_seconds": 0.1139,
+      "p95_seconds": 0.14333,
+      "min_seconds": 0.111,
+      "max_seconds": 0.1448
+    }
+  },
+  "output": {
+    "site_rows": 30,
+    "site_alert_rows": 18,
+    "zone_rows": 130,
+    "site_rows_with_object_mapping": 30,
+    "zone_rows_with_object_mapping": 130,
+    "deterministic_across_runs": true
+  },
+  "runs": [
+    {
+      "total_seconds": 2.503232334041968,
+      "site_seconds": 2.3895,
+      "zone_seconds": 0.111,
+      "site_rows": 30,
+      "site_alert_rows": 18,
+      "zone_rows": 130,
+      "site_mapping_nonempty": 30,
+      "zone_mapping_nonempty": 130,
+      "site_digest": "ea718438623db57864f74a59f73e229390ee057432dbb1020b3c6e5a51c41fc0",
+      "zone_digest": "0ac74b9ccd37c669affa97c12bf5f384250fe9266a16a5f7b5766bd1c0a0c84f"
+    },
+    {
+      "total_seconds": 2.0834700418636203,
+      "site_seconds": 1.9519,
+      "zone_seconds": 0.129,
+      "site_rows": 30,
+      "site_alert_rows": 18,
+      "zone_rows": 130,
+      "site_mapping_nonempty": 30,
+      "zone_mapping_nonempty": 130,
+      "site_digest": "ea718438623db57864f74a59f73e229390ee057432dbb1020b3c6e5a51c41fc0",
+      "zone_digest": "0ac74b9ccd37c669affa97c12bf5f384250fe9266a16a5f7b5766bd1c0a0c84f"
+    },
+    {
+      "total_seconds": 2.059144499944523,
+      "site_seconds": 1.9426,
+      "zone_seconds": 0.1139,
+      "site_rows": 30,
+      "site_alert_rows": 18,
+      "zone_rows": 130,
+      "site_mapping_nonempty": 30,
+      "zone_mapping_nonempty": 130,
+      "site_digest": "ea718438623db57864f74a59f73e229390ee057432dbb1020b3c6e5a51c41fc0",
+      "zone_digest": "0ac74b9ccd37c669affa97c12bf5f384250fe9266a16a5f7b5766bd1c0a0c84f"
+    },
+    {
+      "total_seconds": 2.052901125047356,
+      "site_seconds": 1.938,
+      "zone_seconds": 0.1123,
+      "site_rows": 30,
+      "site_alert_rows": 18,
+      "zone_rows": 130,
+      "site_mapping_nonempty": 30,
+      "zone_mapping_nonempty": 130,
+      "site_digest": "ea718438623db57864f74a59f73e229390ee057432dbb1020b3c6e5a51c41fc0",
+      "zone_digest": "0ac74b9ccd37c669affa97c12bf5f384250fe9266a16a5f7b5766bd1c0a0c84f"
+    },
+    {
+      "total_seconds": 2.0581625001505017,
+      "site_seconds": 1.943,
+      "zone_seconds": 0.1125,
+      "site_rows": 30,
+      "site_alert_rows": 18,
+      "zone_rows": 130,
+      "site_mapping_nonempty": 30,
+      "zone_mapping_nonempty": 130,
+      "site_digest": "ea718438623db57864f74a59f73e229390ee057432dbb1020b3c6e5a51c41fc0",
+      "zone_digest": "0ac74b9ccd37c669affa97c12bf5f384250fe9266a16a5f7b5766bd1c0a0c84f"
+    },
+    {
+      "total_seconds": 2.1905683330260217,
+      "site_seconds": 2.0429,
+      "zone_seconds": 0.1448,
+      "site_rows": 30,
+      "site_alert_rows": 18,
+      "zone_rows": 130,
+      "site_mapping_nonempty": 30,
+      "zone_mapping_nonempty": 130,
+      "site_digest": "ea718438623db57864f74a59f73e229390ee057432dbb1020b3c6e5a51c41fc0",
+      "zone_digest": "0ac74b9ccd37c669affa97c12bf5f384250fe9266a16a5f7b5766bd1c0a0c84f"
+    },
+    {
+      "total_seconds": 2.387709208065644,
+      "site_seconds": 2.2448,
+      "zone_seconds": 0.1399,
+      "site_rows": 30,
+      "site_alert_rows": 18,
+      "zone_rows": 130,
+      "site_mapping_nonempty": 30,
+      "zone_mapping_nonempty": 130,
+      "site_digest": "ea718438623db57864f74a59f73e229390ee057432dbb1020b3c6e5a51c41fc0",
+      "zone_digest": "0ac74b9ccd37c669affa97c12bf5f384250fe9266a16a5f7b5766bd1c0a0c84f"
+    }
+  ]
+}

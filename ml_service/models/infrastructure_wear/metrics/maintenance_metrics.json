@@ -1,0 +1,49 @@
+{
+  "task": "needs preventive repair/maintenance within 7 days",
+  "threshold": 0.5007203849446524,
+  "horizon_hours": 168,
+  "val_metrics": {
+    "precision": 0.9000020133822809,
+    "recall": 0.736906600139575,
+    "f1": 0.810329200203031,
+    "pr_auc": 0.9365862248617343,
+    "roc_auc": 0.9402032857978414,
+    "support_pos": 181981,
+    "support_total": 405588,
+    "positive_rate": 0.44868437922226495
+  },
+  "test_metrics": {
+    "precision": 0.7588863190487831,
+    "recall": 0.7437998759053687,
+    "f1": 0.7512673661741984,
+    "pr_auc": 0.8391730056861199,
+    "roc_auc": 0.914683810671404,
+    "support_pos": 325558,
+    "support_total": 1178774,
+    "positive_rate": 0.2761835602074698
+  },
+  "per_family_test_metrics": null,
+  "threshold_selection": {
+    "threshold": 0.5007203849446524,
+    "precision": 0.9000020133822809,
+    "recall": 0.736906600139575,
+    "f1": 0.8103292002025358
+  },
+  "hyperparameters": {
+    "device": "gpu",
+    "target_precision": 0.9,
+    "n_estimators": 1500,
+    "learning_rate": 0.05,
+    "num_leaves": 63,
+    "max_depth": 10,
+    "min_child_samples": 50,
+    "subsample": 0.85,
+    "colsample_bytree": 0.7,
+    "reg_alpha": 0.5,
+    "reg_lambda": 3.0,
+    "scale_pos_weight": 1,
+    "train_start": "2022-01-01",
+    "early_stopping": 100,
+    "random_state": 42
+  }
+}

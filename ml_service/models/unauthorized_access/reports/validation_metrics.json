@@ -1,0 +1,1082 @@
+{
+  "validation_design": {
+    "development_folds": [
+      "train < 2024-01-01, validate 2024",
+      "train < 2025-01-01, validate 2025"
+    ],
+    "final_holdout": "train < 2026-01-01, test 2026-01-01..2026-06-30",
+    "holdout_rule": "No feature, weight, threshold, calibration-family, or iteration tuning on 2026H1."
+  },
+  "site_ensemble": {
+    "model_version": "model3-site-v2.1-updated-catalog",
+    "default_threshold_mode": "operational_recall_80",
+    "weights": {
+      "lgb_base": 0.35,
+      "cat_base": 0.0,
+      "lgb_weekly_tuned": 0.45,
+      "lgb_context": 0.2
+    },
+    "thresholds_selected_on_2024_2025": {
+      "balanced_f1": 0.3254862486215521,
+      "operational_recall_80": 0.35187665923163414,
+      "high_precision_75": 0.549272663393787,
+      "high_recall_90": 0.2162097231296851
+    },
+    "balanced_threshold_selection": {
+      "strategy": "maximise minimum F1 across development windows",
+      "grid_quantiles": 500,
+      "fold_scores": {
+        "2024": 0.7156431054461182,
+        "2025": 0.7156456490088475
+      },
+      "minimum_f1": 0.7156431054461182,
+      "mean_f1": 0.7156443772274829,
+      "pooled_f1": 0.7156443988837633,
+      "tie_break": "mean F1, pooled F1, then higher threshold"
+    },
+    "operational_threshold_selection": {
+      "strategy": "maximise minimum precision subject to per-window recall floor",
+      "minimum_recall_per_window": 0.8,
+      "grid_quantiles": 500,
+      "fold_scores": {
+        "2024": {
+          "precision": 0.6481521504214394,
+          "recall": 0.8005872931126535,
+          "f1": 0.7163501731756837
+        },
+        "2025": {
+          "precision": 0.6374871266735325,
+          "recall": 0.8114840062926062,
+          "f1": 0.7140385280885916
+        }
+      },
+      "minimum_precision": 0.6374871266735325,
+      "minimum_recall": 0.8005872931126535,
+      "tie_break": "mean precision, minimum F1, then higher threshold"
+    },
+    "uncertainty": {
+      "definition": "weighted standard deviation of positively weighted component probabilities; higher means less model agreement",
+      "thresholds_from_2024_2025": {
+        "median": 0.012479891820781606,
+        "high": 0.024280483953874662,
+        "extreme": 0.04719700522132037
+      }
+    },
+    "fold_pr_auc": {
+      "2024": 0.7817673753734721,
+      "2025": 0.7640828753425332,
+      "2026H1": 0.7490250556344322
+    },
+    "holdout_2026H1": {
+      "rows": 5359,
+      "prevalence": 0.34596006717671207,
+      "roc_auc": 0.8460834960689538,
+      "pr_auc": 0.7490250556344322,
+      "logloss": 0.4568771790061011,
+      "brier": 0.1492823972575865,
+      "default_operational": {
+        "threshold": 0.35187665923163414,
+        "f1": 0.6952292728114868,
+        "precision": 0.609172077922078,
+        "recall": 0.8096008629989212,
+        "alerts": 2464,
+        "alerts_per_day": 13.613259668508288,
+        "proxy_false_alerts": 963,
+        "mode": "operational_recall_80"
+      },
+      "balanced": {
+        "threshold": 0.3254862486215521,
+        "f1": 0.6902455507997297,
+        "precision": 0.5926499032882011,
+        "recall": 0.8263214670981661,
+        "alerts": 2585,
+        "alerts_per_day": 14.281767955801104,
+        "proxy_false_alerts": 1053
+      },
+      "high_precision_target": {
+        "threshold": 0.549272663393787,
+        "f1": 0.6532425229493634,
+        "precision": 0.7242284963887065,
+        "recall": 0.5949298813376483,
+        "alerts": 1523,
+        "alerts_per_day": 8.414364640883978,
+        "proxy_false_alerts": 420,
+        "note": "75% was the development-fold target, not a holdout guarantee."
+      },
+      "high_recall_target": {
+        "threshold": 0.2162097231296851,
+        "f1": 0.666532501509358,
+        "precision": 0.5316211878009631,
+        "recall": 0.8932038834951457,
+        "alerts": 3115,
+        "alerts_per_day": 17.209944751381215,
+        "proxy_false_alerts": 1459
+      },
+      "precision_at_3_per_day": 0.7642725598526704,
+      "precision_at_5_per_day": 0.7016574585635359,
+      "precision_at_10_per_day": 0.6160220994475138
+    },
+    "holdout_baselines": {
+      "previous_day_state": {
+        "rows": 5359,
+        "prevalence": 0.34596006717671207,
+        "roc_auc": 0.6730764495781185,
+        "pr_auc": 0.4758745593529571,
+        "logloss": 5.437864708109388,
+        "brier": 0.2952043232618026,
+        "threshold": 0.5,
+        "f1": 0.571969696969697,
+        "precision": 0.5738327904451683,
+        "recall": 0.5701186623516721,
+        "precision_at_3": 0.6408839779005525,
+        "recall_at_3": 0.18770226537216828,
+        "precision_at_5": 0.6022099447513812,
+        "recall_at_5": 0.29395900755124055,
+        "precision_at_10": 0.5187845303867403,
+        "recall_at_10": 0.5064724919093851,
+        "fold": "2026H1"
+      },
+      "positive_day_rate_28d": {
+        "rows": 5359,
+        "prevalence": 0.34596006717671207,
+        "roc_auc": 0.7731297714622507,
+        "pr_auc": 0.6104473538672456,
+        "logloss": 0.5815015686863317,
+        "brier": 0.18043081305035805,
+        "threshold": 0.5,
+        "f1": 0.5540343722691523,
+        "precision": 0.6022799240025333,
+        "recall": 0.5129449838187702,
+        "precision_at_3": 0.7200736648250461,
+        "recall_at_3": 0.21089536138079829,
+        "precision_at_5": 0.6773480662983425,
+        "recall_at_5": 0.33063646170442285,
+        "precision_at_10": 0.585635359116022,
+        "recall_at_10": 0.5717367853290184,
+        "fold": "2026H1"
+      }
+    }
+  },
+  "zone_localisation": {
+    "model_version": "model3-zone-v1.1-updated-catalog",
+    "conditioning": "Evaluated only inside site-days containing at least one positive zone.",
+    "weights": {
+      "classifier_rank": 0.35,
+      "ranker_rank": 0.65
+    },
+    "holdout_2026H1": {
+      "rows": 89378,
+      "groups": 1854,
+      "positive_zones": 5428,
+      "roc_auc": 0.8395562429034723,
+      "pr_auc": 0.318847715790015,
+      "mrr": 0.6748572433105846,
+      "mean_first_positive_rank": 3.4131607335490832,
+      "precision_at_1": 0.5453074433656958,
+      "recall_at_1": 0.18625644804716285,
+      "hit_rate_at_1": 0.5453074433656958,
+      "precision_at_3": 0.3745019920318725,
+      "recall_at_3": 0.38098747236551217,
+      "hit_rate_at_3": 0.7545846817691478,
+      "precision_at_5": 0.3012524719841793,
+      "recall_at_5": 0.5051584377302873,
+      "hit_rate_at_5": 0.8365695792880259,
+      "precision_at_10": 0.21799966418536967,
+      "recall_at_10": 0.7175755342667649,
+      "hit_rate_at_10": 0.9336569579288025,
+      "fold": "2026H1"
+    },
+    "holdout_90day_rate_baseline": {
+      "rows": 89378,
+      "groups": 1854,
+      "positive_zones": 5428,
+      "roc_auc": 0.8458723665216381,
+      "pr_auc": 0.2838137209411628,
+      "mrr": 0.6100071830797053,
+      "mean_first_positive_rank": 4.108953613807983,
+      "precision_at_1": 0.46817691477885653,
+      "recall_at_1": 0.15991156963890935,
+      "hit_rate_at_1": 0.46817691477885653,
+      "precision_at_3": 0.3301340094168779,
+      "recall_at_3": 0.33585114222549745,
+      "hit_rate_at_3": 0.68554476806904,
+      "precision_at_5": 0.27510437266534826,
+      "recall_at_5": 0.4613117170228445,
+      "hit_rate_at_5": 0.785329018338727,
+      "precision_at_10": 0.20579839928359545,
+      "recall_at_10": 0.6774134119380988,
+      "hit_rate_at_10": 0.9007551240560949,
+      "fold": "2026H1"
+    }
+  },
+  "robustness": {
+    "target_episode_audit": {
+      "gap_minutes": 30,
+      "intrusion_proxy_rows": 483344,
+      "episodes": 67398,
+      "cross_midnight_episodes": 144,
+      "cross_midnight_event_rows": 79705,
+      "positive_site_days_original": 26105,
+      "positive_site_days_by_episode_start": 26080,
+      "continuation_only_site_days": 25,
+      "continuation_only_share_of_positive_days": 0.000957670944263551,
+      "interpretation": "continuation_only_site_days are proxy-positive dates that disappear if an episode is assigned only to its start date"
+    },
+    "feature_availability": {
+      "forecast_cutoff": "end of as_of_date D",
+      "prediction_window": "calendar day D+1",
+      "forbidden_features_by_variant": {
+        "lgb_base": [],
+        "cat_base": [],
+        "lgb_weekly_tuned": [],
+        "lgb_context": []
+      },
+      "passed": true,
+      "known_in_advance_calendar_features_by_variant": {
+        "lgb_base": [
+          "target_dow",
+          "target_dow_cos",
+          "target_dow_sin",
+          "target_doy",
+          "target_doy_cos",
+          "target_doy_sin",
+          "target_holiday",
+          "target_month",
+          "target_postholiday",
+          "target_preholiday",
+          "target_weekend",
+          "target_workday"
+        ],
+        "cat_base": [
+          "target_dow",
+          "target_dow_cos",
+          "target_dow_sin",
+          "target_doy",
+          "target_doy_cos",
+          "target_doy_sin",
+          "target_holiday",
+          "target_month",
+          "target_postholiday",
+          "target_preholiday",
+          "target_weekend",
+          "target_workday"
+        ],
+        "lgb_weekly_tuned": [
+          "target_dow",
+          "target_dow_cos",
+          "target_dow_sin",
+          "target_doy",
+          "target_doy_cos",
+          "target_doy_sin",
+          "target_holiday",
+          "target_month",
+          "target_postholiday",
+          "target_preholiday",
+          "target_weekend",
+          "target_workday"
+        ],
+        "lgb_context": [
+          "target_dow",
+          "target_dow_cos",
+          "target_dow_sin",
+          "target_doy",
+          "target_doy_cos",
+          "target_doy_sin",
+          "target_holiday",
+          "target_month",
+          "target_postholiday",
+          "target_preholiday",
+          "target_weekend",
+          "target_workday"
+        ]
+      },
+      "note": "target_* calendar fields are deterministic properties of D+1; raw D+1 events and labels are forbidden"
+    },
+    "natural_cold_start": {
+      "sites": 30,
+      "first_grid_date_min": "2019-01-01",
+      "first_grid_date_max": "2026-03-12",
+      "first_observed_date_min": "2019-01-01",
+      "first_observed_date_max": "2026-03-12",
+      "naturally_new_sites_by_fold": {
+        "2024": [],
+        "2025": [
+          "1044-1"
+        ],
+        "2026H1": [
+          "264-4"
+        ]
+      },
+      "natural_cold_start_test_available": true,
+      "oof_scores": {
+        "2024": {
+          "unseen_sites": [],
+          "unseen": {
+            "ensemble_probability": {
+              "rows": 0,
+              "sites": 0
+            }
+          },
+          "already_seen": {
+            "ensemble_probability": {
+              "rows": 10248,
+              "sites": 28,
+              "prevalence": 0.3655347384855582,
+              "brier": 0.14479132031957612,
+              "roc_auc": 0.8613449958228796,
+              "pr_auc": 0.7817673753734721
+            }
+          }
+        },
+        "2025": {
+          "unseen_sites": [
+            "1044-1"
+          ],
+          "unseen": {
+            "ensemble_probability": {
+              "rows": 206,
+              "sites": 1,
+              "prevalence": 0.6456310679611651,
+              "brier": 0.1500060903240605,
+              "roc_auc": 0.8571428571428572,
+              "pr_auc": 0.9229525550603521
+            }
+          },
+          "already_seen": {
+            "ensemble_probability": {
+              "rows": 10220,
+              "sites": 28,
+              "prevalence": 0.3601761252446184,
+              "brier": 0.14908407111302086,
+              "roc_auc": 0.8525968091727568,
+              "pr_auc": 0.7564304373270718
+            }
+          }
+        },
+        "2026H1": {
+          "unseen_sites": [
+            "264-4"
+          ],
+          "unseen": {
+            "ensemble_probability": {
+              "rows": 110,
+              "sites": 1,
+              "prevalence": 0.0,
+              "brier": 0.0117705559168965
+            }
+          },
+          "already_seen": {
+            "ensemble_probability": {
+              "rows": 5249,
+              "sites": 29,
+              "prevalence": 0.3532101352638598,
+              "brier": 0.1521641466474657,
+              "roc_auc": 0.8421665212977394,
+              "pr_auc": 0.749459757807712
+            }
+          }
+        }
+      },
+      "note": "If no site first appears in a validation fold, a true natural unseen-site score cannot be estimated from this dataset; an identifier ablation is reported separately instead of inventing cold-start evidence."
+    },
+    "calibration": {
+      "selection_protocol": "fit on 2024, choose on 2025 only; refit chosen family on 2024+2025; 2026H1 is report-only",
+      "selection_2025": {
+        "raw": {
+          "brier": 0.14910228864203234,
+          "logloss": 0.4511718542846001,
+          "ece_10_equal_frequency": 0.009348016599008939
+        },
+        "platt": {
+          "brier": 0.14920266053253,
+          "logloss": 0.4514352005144718,
+          "ece_10_equal_frequency": 0.011848996343615331
+        },
+        "isotonic": {
+          "brier": 0.14979730399265603,
+          "logloss": 0.4629574719530603,
+          "ece_10_equal_frequency": 0.01626503205229635
+        }
+      },
+      "selected_method_without_holdout": "raw",
+      "holdout_2026H1": {
+        "raw": {
+          "brier": 0.1492823972575865,
+          "logloss": 0.4568771790061011,
+          "ece_10_equal_frequency": 0.021292803038469896
+        },
+        "platt": {
+          "brier": 0.14952022227650638,
+          "logloss": 0.4572041889133764,
+          "ece_10_equal_frequency": 0.024221468470810237
+        },
+        "isotonic": {
+          "brier": 0.1497301484574456,
+          "logloss": 0.4712175867318624,
+          "ece_10_equal_frequency": 0.023809374810629128
+        }
+      },
+      "adoption_rule": "adopt only if both Brier and logloss improve on 2025; holdout is never used to select the method"
+    },
+    "ensemble_uncertainty": {
+      "active_components": {
+        "lgb_base": 0.35,
+        "lgb_weekly_tuned": 0.45,
+        "lgb_context": 0.2
+      },
+      "definition": "weighted standard deviation of active component probabilities",
+      "by_fold": {
+        "2024": {
+          "mean_disagreement": 0.015881501692015024,
+          "p95_disagreement": 0.0450388449239665,
+          "error_detection_roc_auc": 0.6982907096947707,
+          "quartiles": [
+            {
+              "quartile": 1,
+              "rows": 2562,
+              "mean_disagreement": 0.003609222938876719,
+              "mean_absolute_probability_error": 0.12609948907778812,
+              "classification_error_rate": 0.08469945355191257
+            },
+            {
+              "quartile": 2,
+              "rows": 2562,
+              "mean_disagreement": 0.00786907667749104,
+              "mean_absolute_probability_error": 0.22651195439851288,
+              "classification_error_rate": 0.1643247462919594
+            },
+            {
+              "quartile": 3,
+              "rows": 2562,
+              "mean_disagreement": 0.015935695100071104,
+              "mean_absolute_probability_error": 0.36218477836087215,
+              "classification_error_rate": 0.29937548790007806
+            },
+            {
+              "quartile": 4,
+              "rows": 2562,
+              "mean_disagreement": 0.036112012051621234,
+              "mean_absolute_probability_error": 0.43437894677966143,
+              "classification_error_rate": 0.4094457455113193
+            }
+          ]
+        },
+        "2025": {
+          "mean_disagreement": 0.018283225921332153,
+          "p95_disagreement": 0.04883944274164321,
+          "error_detection_roc_auc": 0.6923426772599758,
+          "quartiles": [
+            {
+              "quartile": 1,
+              "rows": 2607,
+              "mean_disagreement": 0.002626336610937224,
+              "mean_absolute_probability_error": 0.10153756557895122,
+              "classification_error_rate": 0.06751054852320675
+            },
+            {
+              "quartile": 2,
+              "rows": 2606,
+              "mean_disagreement": 0.009651332775818177,
+              "mean_absolute_probability_error": 0.27659773188462206,
+              "classification_error_rate": 0.21872601688411358
+            },
+            {
+              "quartile": 3,
+              "rows": 2606,
+              "mean_disagreement": 0.01988722537735557,
+              "mean_absolute_probability_error": 0.3718246288614893,
+              "classification_error_rate": 0.3035303146584804
+            },
+            {
+              "quartile": 4,
+              "rows": 2607,
+              "mean_disagreement": 0.040965313143047535,
+              "mean_absolute_probability_error": 0.4281611667983687,
+              "classification_error_rate": 0.38434982738780205
+            }
+          ]
+        },
+        "2026H1": {
+          "mean_disagreement": 0.01644322006874144,
+          "p95_disagreement": 0.044588720658548915,
+          "error_detection_roc_auc": 0.6883128879152975,
+          "quartiles": [
+            {
+              "quartile": 1,
+              "rows": 1340,
+              "mean_disagreement": 0.002477066901306319,
+              "mean_absolute_probability_error": 0.1091439688583069,
+              "classification_error_rate": 0.07761194029850746
+            },
+            {
+              "quartile": 2,
+              "rows": 1340,
+              "mean_disagreement": 0.008632738141340348,
+              "mean_absolute_probability_error": 0.2726270850074058,
+              "classification_error_rate": 0.21865671641791046
+            },
+            {
+              "quartile": 3,
+              "rows": 1339,
+              "mean_disagreement": 0.01758981069512455,
+              "mean_absolute_probability_error": 0.3728586934960537,
+              "classification_error_rate": 0.3323375653472741
+            },
+            {
+              "quartile": 4,
+              "rows": 1340,
+              "mean_disagreement": 0.0370741202018411,
+              "mean_absolute_probability_error": 0.42945578395758677,
+              "classification_error_rate": 0.3977611940298508
+            }
+          ]
+        }
+      }
+    },
+    "temporal_drift": {
+      "prediction_psi_vs_2024": {
+        "2024": 0.0,
+        "2025": 0.008516653497425081,
+        "2026H1": 0.012489147036983138
+      },
+      "monthly": [
+        {
+          "month": "2024-01",
+          "rows": 868,
+          "prevalence": 0.32027649769585254,
+          "mean_prediction": 0.30884788119033074
+        },
+        {
+          "month": "2024-02",
+          "rows": 812,
+          "prevalence": 0.3706896551724138,
+          "mean_prediction": 0.35720326801202595
+        },
+        {
+          "month": "2024-03",
+          "rows": 868,
+          "prevalence": 0.3271889400921659,
+          "mean_prediction": 0.3425107057360457
+        },
+        {
+          "month": "2024-04",
+          "rows": 840,
+          "prevalence": 0.38333333333333336,
+          "mean_prediction": 0.3656475065049395
+        },
+        {
+          "month": "2024-05",
+          "rows": 868,
+          "prevalence": 0.35714285714285715,
+          "mean_prediction": 0.34307983250623314
+        },
+        {
+          "month": "2024-06",
+          "rows": 840,
+          "prevalence": 0.4107142857142857,
+          "mean_prediction": 0.37336020397028585
+        },
+        {
+          "month": "2024-07",
+          "rows": 868,
+          "prevalence": 0.42972350230414746,
+          "mean_prediction": 0.4191730678304984
+        },
+        {
+          "month": "2024-08",
+          "rows": 868,
+          "prevalence": 0.3652073732718894,
+          "mean_prediction": 0.369881144387916
+        },
+        {
+          "month": "2024-09",
+          "rows": 840,
+          "prevalence": 0.33690476190476193,
+          "mean_prediction": 0.3404523830618813
+        },
+        {
+          "month": "2024-10",
+          "rows": 868,
+          "prevalence": 0.3652073732718894,
+          "mean_prediction": 0.36017820370607584
+        },
+        {
+          "month": "2024-11",
+          "rows": 840,
+          "prevalence": 0.36666666666666664,
+          "mean_prediction": 0.3406422150896142
+        },
+        {
+          "month": "2024-12",
+          "rows": 868,
+          "prevalence": 0.3548387096774194,
+          "mean_prediction": 0.33506900611813895
+        },
+        {
+          "month": "2025-01",
+          "rows": 868,
+          "prevalence": 0.33755760368663595,
+          "mean_prediction": 0.3205944930497937
+        },
+        {
+          "month": "2025-02",
+          "rows": 784,
+          "prevalence": 0.3647959183673469,
+          "mean_prediction": 0.3631662373074148
+        },
+        {
+          "month": "2025-03",
+          "rows": 868,
+          "prevalence": 0.3248847926267281,
+          "mean_prediction": 0.34674242053766896
+        },
+        {
+          "month": "2025-04",
+          "rows": 840,
+          "prevalence": 0.36428571428571427,
+          "mean_prediction": 0.36144548604751553
+        },
+        {
+          "month": "2025-05",
+          "rows": 868,
+          "prevalence": 0.3087557603686636,
+          "mean_prediction": 0.31118716174266614
+        },
+        {
+          "month": "2025-06",
+          "rows": 862,
+          "prevalence": 0.37587006960556846,
+          "mean_prediction": 0.3815186681076097
+        },
+        {
+          "month": "2025-07",
+          "rows": 899,
+          "prevalence": 0.43381535038932145,
+          "mean_prediction": 0.426352099811479
+        },
+        {
+          "month": "2025-08",
+          "rows": 899,
+          "prevalence": 0.3448275862068966,
+          "mean_prediction": 0.3639732479398954
+        },
+        {
+          "month": "2025-09",
+          "rows": 870,
+          "prevalence": 0.39425287356321836,
+          "mean_prediction": 0.39000194596879956
+        },
+        {
+          "month": "2025-10",
+          "rows": 899,
+          "prevalence": 0.407119021134594,
+          "mean_prediction": 0.38949690085471556
+        },
+        {
+          "month": "2025-11",
+          "rows": 870,
+          "prevalence": 0.3390804597701149,
+          "mean_prediction": 0.3340759263169666
+        },
+        {
+          "month": "2025-12",
+          "rows": 899,
+          "prevalence": 0.39043381535038935,
+          "mean_prediction": 0.37721283272899214
+        },
+        {
+          "month": "2026-01",
+          "rows": 899,
+          "prevalence": 0.2903225806451613,
+          "mean_prediction": 0.3095592580206506
+        },
+        {
+          "month": "2026-02",
+          "rows": 812,
+          "prevalence": 0.31773399014778325,
+          "mean_prediction": 0.34326274095651377
+        },
+        {
+          "month": "2026-03",
+          "rows": 918,
+          "prevalence": 0.3747276688453159,
+          "mean_prediction": 0.38023131624929135
+        },
+        {
+          "month": "2026-04",
+          "rows": 900,
+          "prevalence": 0.3688888888888889,
+          "mean_prediction": 0.3770095546144258
+        },
+        {
+          "month": "2026-05",
+          "rows": 930,
+          "prevalence": 0.35053763440860214,
+          "mean_prediction": 0.3398215941404729
+        },
+        {
+          "month": "2026-06",
+          "rows": 900,
+          "prevalence": 0.37,
+          "mean_prediction": 0.38303898154281735
+        }
+      ],
+      "interpretation": "PSI monitors score-distribution shift; it is not a quality metric."
+    },
+    "dispatcher_workload": {
+      "fold": "2026H1",
+      "threshold_mode": "operational_recall_80",
+      "threshold": 0.35187665923163414,
+      "days": 181,
+      "mean_candidate_sites_per_day": 29.607734806629836,
+      "mean_alerts_per_day": 13.613259668508288,
+      "p95_alerts_per_day": 21.0,
+      "max_alerts_per_day": 24,
+      "total_alerts": 2464,
+      "proxy_true_alerts": 1501,
+      "proxy_false_alerts": 963,
+      "precision": 0.609172077922078,
+      "recall": 0.8096008629989212,
+      "f1": 0.6952292728114868,
+      "reviews_avoided_vs_review_all": 2895,
+      "review_reduction_vs_all": 0.5402127262548984,
+      "wording_note": "true/false here means agreement with the SCADA proxy target, not a dispatcher-confirmed real intrusion outcome"
+    },
+    "end_to_end_localisation": {
+      "definition": "A positive site-day is retrieved only when it is inside the daily site budget and at least one true proxy-positive zone is inside the zone budget.",
+      "by_fold": {
+        "2025": {
+          "positive_site_days": 3814,
+          "operating_threshold_mode": "operational_recall_80",
+          "operating_site_threshold": 0.35187665923163414,
+          "mean_alerted_sites_per_day": 13.301369863013699,
+          "site_recall_at_operating_threshold": 0.8114840062926062,
+          "end_to_end_hit_at_operating_threshold_zones_1": 0.4601468274777137,
+          "end_to_end_hit_at_operating_threshold_zones_3": 0.6541688515993708,
+          "end_to_end_hit_at_operating_threshold_zones_5": 0.7058206607236497,
+          "end_to_end_hit_at_operating_threshold_zones_10": 0.7564237021499738,
+          "hit_rate_sites_3_zones_1": 0.15312008390141585,
+          "hit_rate_sites_3_zones_3": 0.18956476140534873,
+          "hit_rate_sites_3_zones_5": 0.19690613529103304,
+          "hit_rate_sites_3_zones_10": 0.20634504457262717,
+          "hit_rate_sites_5_zones_1": 0.21394861038280022,
+          "hit_rate_sites_5_zones_3": 0.28290508652333507,
+          "hit_rate_sites_5_zones_5": 0.2986366019926586,
+          "hit_rate_sites_5_zones_10": 0.31725222863135816,
+          "hit_rate_sites_10_zones_1": 0.33691662296801256,
+          "hit_rate_sites_10_zones_3": 0.4648662821185108,
+          "hit_rate_sites_10_zones_5": 0.49973780807551127,
+          "hit_rate_sites_10_zones_10": 0.5432616675406398
+        },
+        "2026H1": {
+          "positive_site_days": 1854,
+          "operating_threshold_mode": "operational_recall_80",
+          "operating_site_threshold": 0.35187665923163414,
+          "mean_alerted_sites_per_day": 13.613259668508288,
+          "site_recall_at_operating_threshold": 0.8096008629989212,
+          "end_to_end_hit_at_operating_threshold_zones_1": 0.46494066882416396,
+          "end_to_end_hit_at_operating_threshold_zones_3": 0.6316073354908306,
+          "end_to_end_hit_at_operating_threshold_zones_5": 0.6963322545846817,
+          "end_to_end_hit_at_operating_threshold_zones_10": 0.7648327939590076,
+          "hit_rate_sites_3_zones_1": 0.16073354908306364,
+          "hit_rate_sites_3_zones_3": 0.1925566343042071,
+          "hit_rate_sites_3_zones_5": 0.20334412081984898,
+          "hit_rate_sites_3_zones_10": 0.215210355987055,
+          "hit_rate_sites_5_zones_1": 0.21736785329018338,
+          "hit_rate_sites_5_zones_3": 0.27885652642934194,
+          "hit_rate_sites_5_zones_5": 0.30151024811218985,
+          "hit_rate_sites_5_zones_10": 0.325782092772384,
+          "hit_rate_sites_10_zones_1": 0.33117583603020495,
+          "hit_rate_sites_10_zones_3": 0.4519956850053937,
+          "hit_rate_sites_10_zones_5": 0.4989212513484358,
+          "hit_rate_sites_10_zones_10": 0.5625674217907227
+        }
+      }
+    }
+  },
+  "metric_uncertainty": {
+    "protocol": {
+      "fold": "2026H1",
+      "resampling_unit": "calendar day",
+      "draws": 2000,
+      "seed": 2603,
+      "confidence_interval": "2.5th and 97.5th bootstrap percentiles",
+      "selection_policy": "report-only; no model or threshold tuning"
+    },
+    "threshold_mode": "operational_recall_80",
+    "threshold": 0.35187665923163414,
+    "intervals": {
+      "site_pr_auc": {
+        "point_estimate": 0.7490250556344322,
+        "lower_95": 0.7216358663456949,
+        "bootstrap_median": 0.7498029665871132,
+        "upper_95": 0.7736329261856144
+      },
+      "site_roc_auc": {
+        "point_estimate": 0.8460834960689538,
+        "lower_95": 0.8339224522379522,
+        "bootstrap_median": 0.8462081335038134,
+        "upper_95": 0.8578527797777705
+      },
+      "site_f1": {
+        "point_estimate": 0.6952292728114868,
+        "lower_95": 0.6729056012302597,
+        "bootstrap_median": 0.6956225451033249,
+        "upper_95": 0.7158995685921821
+      },
+      "site_precision": {
+        "point_estimate": 0.609172077922078,
+        "lower_95": 0.5844975752171311,
+        "bootstrap_median": 0.6097233424626776,
+        "upper_95": 0.6333383105802047
+      },
+      "site_recall": {
+        "point_estimate": 0.8096008629989212,
+        "lower_95": 0.775630868544601,
+        "bootstrap_median": 0.810190206475456,
+        "upper_95": 0.8386444603375305
+      },
+      "zone_hit_rate_at_5": {
+        "point_estimate": 0.8365695792880259,
+        "lower_95": 0.8157166574432761,
+        "bootstrap_median": 0.8367454139166344,
+        "upper_95": 0.8557187740781392
+      },
+      "end_to_end_hit_at_5": {
+        "point_estimate": 0.6963322545846817,
+        "lower_95": 0.6629497417401989,
+        "bootstrap_median": 0.6963182461920865,
+        "upper_95": 0.7266615250356391
+      }
+    },
+    "internal_gate_uncertainty": {
+      "checks": {
+        "site_pr_auc": {
+          "threshold": 0.7,
+          "point_estimate_passed": true,
+          "lower_95_passed": true,
+          "bootstrap_pass_probability": 0.9995
+        },
+        "site_f1": {
+          "threshold": 0.65,
+          "point_estimate_passed": true,
+          "lower_95_passed": true,
+          "bootstrap_pass_probability": 1.0
+        },
+        "site_precision": {
+          "threshold": 0.55,
+          "point_estimate_passed": true,
+          "lower_95_passed": true,
+          "bootstrap_pass_probability": 1.0
+        },
+        "site_recall": {
+          "threshold": 0.8,
+          "point_estimate_passed": true,
+          "lower_95_passed": false,
+          "bootstrap_pass_probability": 0.733
+        },
+        "zone_hit_rate_at_5": {
+          "threshold": 0.8,
+          "point_estimate_passed": true,
+          "lower_95_passed": true,
+          "bootstrap_pass_probability": 1.0
+        },
+        "end_to_end_hit_at_5": {
+          "threshold": 0.65,
+          "point_estimate_passed": true,
+          "lower_95_passed": true,
+          "bootstrap_pass_probability": 0.9965
+        }
+      },
+      "all_point_estimates_pass": true,
+      "all_lower_95_bounds_pass": false,
+      "interpretation": "A point-estimate pass is not an SLA guarantee. Calendar-day block bootstrap reflects sampling uncertainty inside this single holdout period, not every possible future drift scenario."
+    }
+  },
+  "tail_inference_smoke_test": {
+    "as_of_date": "2026-06-30",
+    "forecast_date": "2026-07-01",
+    "site_model_version": "model3-site-v2.1-updated-catalog",
+    "zone_model_version": "model3-zone-v1.1-updated-catalog",
+    "site_rows": 30,
+    "alert_rows": 18,
+    "zone_candidate_rows": 1031,
+    "zone_output_rows": 130,
+    "zone_sites_with_candidates": 30,
+    "zone_sites_with_fewer_than_top_k": 6,
+    "total_prediction_seconds": 3.3939
+  },
+  "acceptance": {
+    "generated_on": "2026-09-16",
+    "evaluation_target": "At least one next-calendar-day SCADA security alarm with value 'Обнаружено движение' or 'Не замкнут'; proxy, not dispatcher-confirmed intrusion",
+    "final_holdout": "2026-01-01 through 2026-06-30; report-only",
+    "official_task_specification": {
+      "source": "/Users/dinvinch/Downloads/ТЗ/8. ДЖКХ.pdf",
+      "section": 9,
+      "numeric_precision_recall_threshold": null,
+      "quality_wording": "Целевые Precision и Recall определяются на этапе проектирования исходя из качества предоставленных данных.",
+      "status": "По предоставленному ТЗ нельзя заявить официальный числовой pass/fail-порог ML-качества."
+    },
+    "official_model_layer_checks": {
+      "status": "pass",
+      "checks": [
+        {
+          "name": "forecast_horizon_hours",
+          "actual": 24.0,
+          "operator": ">=",
+          "threshold": 24.0,
+          "passed": true,
+          "rationale": "Числовое требование раздела 9 исходного ТЗ."
+        },
+        {
+          "name": "tail_batch_prediction_seconds",
+          "actual": 3.3939,
+          "operator": "<=",
+          "threshold": 300.0,
+          "passed": true,
+          "rationale": "ТЗ ограничивает inference одного объекта 300 секундами; измерение охватывает весь batch из 30 объектов и 1 031 зоны."
+        }
+      ],
+      "scope_note": "Проверены горизонт model-layer и измеренная batch-serving latency. Это не сертифицирует весь веб-сервис, нагрузку 20 пользователей, LDAP, RBAC, PostgreSQL, доступность или аварийное восстановление."
+    },
+    "internal_proxy_ml_shadow_gate": {
+      "status": "pass",
+      "checks": [
+        {
+          "name": "site_pr_auc",
+          "actual": 0.7490250556344322,
+          "operator": ">=",
+          "threshold": 0.7,
+          "passed": true,
+          "rationale": "Основная ranking-метрика для несбалансированной proxy-цели."
+        },
+        {
+          "name": "site_pr_auc_gain_vs_28d_baseline",
+          "actual": 0.13857770176718665,
+          "operator": ">=",
+          "threshold": 0.05,
+          "passed": true,
+          "rationale": "Требует заметного выигрыша над простым правилом по недавней истории."
+        },
+        {
+          "name": "site_f1",
+          "actual": 0.6952292728114868,
+          "operator": ">=",
+          "threshold": 0.65,
+          "passed": true,
+          "rationale": "Минимальное сбалансированное качество рабочего решения."
+        },
+        {
+          "name": "site_precision",
+          "actual": 0.609172077922078,
+          "operator": ">=",
+          "threshold": 0.55,
+          "passed": true,
+          "rationale": "Ограничивает число лишних профилактических проверок по proxy-цели."
+        },
+        {
+          "name": "site_recall",
+          "actual": 0.8096008629989212,
+          "operator": ">=",
+          "threshold": 0.8,
+          "passed": true,
+          "rationale": "Security-oriented минимум покрытия proxy-событий."
+        },
+        {
+          "name": "zone_hit_rate_at_5",
+          "actual": 0.8365695792880259,
+          "operator": ">=",
+          "threshold": 0.8,
+          "passed": true,
+          "rationale": "Хотя бы одна релевантная proxy-зона обычно должна входить в top-5."
+        },
+        {
+          "name": "zone_hit_rate_at_5_gain_vs_90d_baseline",
+          "actual": 0.05124056094929885,
+          "operator": ">=",
+          "threshold": 0.03,
+          "passed": true,
+          "rationale": "Требует полезного выигрыша локализации над 90-дневным правилом."
+        },
+        {
+          "name": "end_to_end_hit_at_5",
+          "actual": 0.6963322545846817,
+          "operator": ">=",
+          "threshold": 0.65,
+          "passed": true,
+          "rationale": "Измеряет полную цепочку выбора объекта и локализации зоны."
+        },
+        {
+          "name": "max_prediction_psi_vs_2024",
+          "actual": 0.012489147036983138,
+          "operator": "<=",
+          "threshold": 0.1,
+          "passed": true,
+          "rationale": "Консервативный ограничитель drift распределения score."
+        },
+        {
+          "name": "no_forbidden_future_or_label_features",
+          "actual": true,
+          "operator": "==",
+          "threshold": true,
+          "passed": true,
+          "rationale": "Метрика недействительна при утечке будущего в признаки."
+        }
+      ],
+      "bootstrap_uncertainty": {
+        "checks": {
+          "site_pr_auc": {
+            "threshold": 0.7,
+            "point_estimate_passed": true,
+            "lower_95_passed": true,
+            "bootstrap_pass_probability": 0.9995
+          },
+          "site_f1": {
+            "threshold": 0.65,
+            "point_estimate_passed": true,
+            "lower_95_passed": true,
+            "bootstrap_pass_probability": 1.0
+          },
+          "site_precision": {
+            "threshold": 0.55,
+            "point_estimate_passed": true,
+            "lower_95_passed": true,
+            "bootstrap_pass_probability": 1.0
+          },
+          "site_recall": {
+            "threshold": 0.8,
+            "point_estimate_passed": true,
+            "lower_95_passed": false,
+            "bootstrap_pass_probability": 0.733
+          },
+          "zone_hit_rate_at_5": {
+            "threshold": 0.8,
+            "point_estimate_passed": true,
+            "lower_95_passed": true,
+            "bootstrap_pass_probability": 1.0
+          },
+          "end_to_end_hit_at_5": {
+            "threshold": 0.65,
+            "point_estimate_passed": true,
+            "lower_95_passed": true,
+            "bootstrap_pass_probability": 0.9965
+          }
+        },
+        "all_point_estimates_pass": true,
+        "all_lower_95_bounds_pass": false,
+        "interpretation": "A point-estimate pass is not an SLA guarantee. Calendar-day block bootstrap reflects sampling uncertainty inside this single holdout period, not every possible future drift scenario."
+      },
+      "policy_note": "Это предложенные командой shadow-mode guardrails, а не пороги организаторов и не доказательство качества по подтверждённым вторжениям."
+    },
+    "confirmed_intrusion_production_gate": {
+      "status": "not_evaluable",
+      "blocking_conditions": [
+        "В датасете нет подтверждённых диспетчером или человеком исходов.",
+        "Обновлённый справочник связывает каналы с объектами диспетчеризации, но не содержит проверенной физической критичности зон, маршрутов реагирования и результатов осмотра.",
+        "Нет меток СКУД, разрешённых работ, видео и результатов расследования.",
+        "В model package нет end-to-end load test на 20 одновременных пользователей."
+      ],
+      "required_next_step": "Запустить shadow mode, собирать обязательные outcomes, затем измерить confirmed precision/recall и false-dispatch rate до production-эскалации."
+    }
+  }
+}

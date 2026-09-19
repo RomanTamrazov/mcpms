@@ -1,0 +1,462 @@
+{
+  "model_version": "fire_risk_object_14d_high_precision_ensemble_v5",
+  "unit": "ид_объект from supplied channel registry",
+  "target": "at least one new same-channel 'Обнаружен дым' onset (>24h gap) on the object during as_of..as_of+13",
+  "target_is_proxy": true,
+  "horizon_hours": 336,
+  "feature_cutoff": "features use events through as_of - 1 calendar day",
+  "eligibility": "at least one fire-system channel event on the object in the prior 30 calendar days",
+  "features": [
+    "smoke_channels_detected_max_30d",
+    "days_to_next_expected",
+    "obj_smoke_channels_total",
+    "days_with_smoke_detect_30d",
+    "calendar_month",
+    "days_since_onset",
+    "gap_mean_hist",
+    "smoke_detect_30d",
+    "smoke_fault_365d",
+    "exp_decay_days_since_onset_7d",
+    "smoke_last_unknown_count",
+    "period_est_days",
+    "smoke_fault_90d",
+    "gap_std_hist",
+    "object_id"
+  ],
+  "numeric_features": [
+    "smoke_channels_detected_max_30d",
+    "days_to_next_expected",
+    "obj_smoke_channels_total",
+    "days_with_smoke_detect_30d",
+    "calendar_month",
+    "days_since_onset",
+    "gap_mean_hist",
+    "smoke_detect_30d",
+    "smoke_fault_365d",
+    "exp_decay_days_since_onset_7d",
+    "smoke_last_unknown_count",
+    "period_est_days",
+    "smoke_fault_90d",
+    "gap_std_hist"
+  ],
+  "categorical_features": [
+    "object_id"
+  ],
+  "threshold": 0.3616143707896206,
+  "threshold_rule": "maximum precision on full 2025 validation subject to recall >0.505",
+  "threshold_selection": {
+    "precision": 0.7732531235539102,
+    "recall": 0.5072859744990893,
+    "recall_floor_strict": 0.505
+  },
+  "threshold_components": {
+    "2025_h1": {
+      "threshold": 0.34487595856207937,
+      "precision": 0.7375630857966835,
+      "recall": 0.6842809364548496
+    },
+    "2025_h2": {
+      "threshold": 0.3288891135950316,
+      "precision": 0.7351724137931035,
+      "recall": 0.6371787208607292
+    }
+  },
+  "balanced_threshold": 0.34487595856207937,
+  "validation_halves_at_default_threshold": {
+    "2025_h1": {
+      "rows": 4240,
+      "positives": 1495,
+      "prevalence": 0.35259433962264153,
+      "average_precision": 0.764440614398411,
+      "tp": 874,
+      "fp": 256,
+      "fn": 621,
+      "tn": 2489,
+      "precision": 0.7734513274336283,
+      "recall": 0.5846153846153846
+    },
+    "2025_h2": {
+      "rows": 4234,
+      "positives": 1673,
+      "prevalence": 0.3951346244685876,
+      "average_precision": 0.7559183334353755,
+      "tp": 726,
+      "fp": 213,
+      "fn": 947,
+      "tn": 2348,
+      "precision": 0.7731629392971247,
+      "recall": 0.4339509862522415
+    }
+  },
+  "balanced_validation": {
+    "rows": 8765,
+    "positives": 3294,
+    "prevalence": 0.375812892184826,
+    "average_precision": 0.7534067882435117,
+    "tp": 2005,
+    "fp": 709,
+    "fn": 1289,
+    "tn": 4762,
+    "precision": 0.7387619749447311,
+    "recall": 0.608682452944748
+  },
+  "split_protocol": {
+    "train": "2022-02-01..2024-12-18",
+    "early_stop_and_threshold_component_h1": "2025-01-01..2025-06-17",
+    "threshold_component_h2": "2025-07-01..2025-12-18",
+    "reported_validation": "2025-01-01..2025-12-18",
+    "test": "2026-01-01..2026-06-17",
+    "purge": "13 calendar days at annual boundaries and before July split; incomplete final 14-day labels excluded",
+    "ensemble_weight_selection": "three-day weights 0.0..1.0 compared on 2025 only; choose the compact equal blend before the 2026 check"
+  },
+  "ensemble": {
+    "aggregation": "0.5 * mean(P(target_7d)) + 0.5 * mean(P(target_3d))",
+    "seven_day_model_files": [
+      "fire_risk_7d_seed_7.cbm",
+      "fire_risk_7d_seed_21.cbm",
+      "fire_risk_7d_seed_42.cbm"
+    ],
+    "three_day_model_files": [
+      "fire_risk_3d_seed_7.cbm",
+      "fire_risk_3d_seed_21.cbm",
+      "fire_risk_3d_seed_42.cbm"
+    ],
+    "three_day_weight": 0.5,
+    "component_targets": {
+      "seven_day_model_files": "target_7d",
+      "three_day_model_files": "target_3d"
+    },
+    "seeds": [
+      7,
+      21,
+      42
+    ],
+    "tree_counts_7d": [
+      6,
+      50,
+      79
+    ],
+    "tree_counts_3d": [
+      2,
+      32,
+      41
+    ]
+  },
+  "catboost": {
+    "depth": 5,
+    "learning_rate": 0.03,
+    "l2_leaf_reg": 15,
+    "random_strength": 0.3,
+    "train_seconds_each_cpu_local": [
+      0.9206146669748705,
+      1.1264541249838658,
+      1.4830742919875775,
+      0.8294479169999249,
+      1.0284099589916877,
+      1.0645094999927096
+    ],
+    "train_seconds_total_cpu_local": 6.453430541994749
+  },
+  "validation": {
+    "rows": 8765,
+    "positives": 3294,
+    "prevalence": 0.375812892184826,
+    "average_precision": 0.7534067882435117,
+    "tp": 1671,
+    "fp": 490,
+    "fn": 1623,
+    "tn": 4981,
+    "precision": 0.7732531235539102,
+    "recall": 0.5072859744990893
+  },
+  "test": {
+    "rows": 4396,
+    "positives": 1799,
+    "prevalence": 0.40923566878980894,
+    "average_precision": 0.8151490560265338,
+    "tp": 1086,
+    "fp": 299,
+    "fn": 713,
+    "tn": 2298,
+    "precision": 0.784115523465704,
+    "recall": 0.60366870483602
+  },
+  "test_nonoverlap_14_phases": {
+    "phases": [
+      {
+        "rows": 314,
+        "positives": 123,
+        "prevalence": 0.39171974522292996,
+        "average_precision": 0.8164131589072344,
+        "tp": 77,
+        "fp": 20,
+        "fn": 46,
+        "tn": 171,
+        "precision": 0.7938144329896907,
+        "recall": 0.6260162601626016,
+        "phase": 0,
+        "joint_met": true
+      },
+      {
+        "rows": 317,
+        "positives": 129,
+        "prevalence": 0.4069400630914827,
+        "average_precision": 0.8221908176394256,
+        "tp": 78,
+        "fp": 19,
+        "fn": 51,
+        "tn": 169,
+        "precision": 0.8041237113402062,
+        "recall": 0.6046511627906976,
+        "phase": 1,
+        "joint_met": true
+      },
+      {
+        "rows": 319,
+        "positives": 128,
+        "prevalence": 0.4012539184952978,
+        "average_precision": 0.7924030261635651,
+        "tp": 78,
+        "fp": 21,
+        "fn": 50,
+        "tn": 170,
+        "precision": 0.7878787878787878,
+        "recall": 0.609375,
+        "phase": 2,
+        "joint_met": true
+      },
+      {
+        "rows": 315,
+        "positives": 127,
+        "prevalence": 0.4031746031746032,
+        "average_precision": 0.7948155125559053,
+        "tp": 78,
+        "fp": 23,
+        "fn": 49,
+        "tn": 165,
+        "precision": 0.7722772277227723,
+        "recall": 0.6141732283464567,
+        "phase": 3,
+        "joint_met": true
+      },
+      {
+        "rows": 313,
+        "positives": 128,
+        "prevalence": 0.40894568690095845,
+        "average_precision": 0.8158489150226305,
+        "tp": 76,
+        "fp": 23,
+        "fn": 52,
+        "tn": 162,
+        "precision": 0.7676767676767676,
+        "recall": 0.59375,
+        "phase": 4,
+        "joint_met": true
+      },
+      {
+        "rows": 319,
+        "positives": 133,
+        "prevalence": 0.4169278996865204,
+        "average_precision": 0.8112308362861105,
+        "tp": 77,
+        "fp": 23,
+        "fn": 56,
+        "tn": 163,
+        "precision": 0.77,
+        "recall": 0.5789473684210527,
+        "phase": 5,
+        "joint_met": true
+      },
+      {
+        "rows": 322,
+        "positives": 134,
+        "prevalence": 0.4161490683229814,
+        "average_precision": 0.8070454264222794,
+        "tp": 78,
+        "fp": 24,
+        "fn": 56,
+        "tn": 164,
+        "precision": 0.7647058823529411,
+        "recall": 0.582089552238806,
+        "phase": 6,
+        "joint_met": true
+      },
+      {
+        "rows": 320,
+        "positives": 133,
+        "prevalence": 0.415625,
+        "average_precision": 0.8154649288029403,
+        "tp": 81,
+        "fp": 26,
+        "fn": 52,
+        "tn": 161,
+        "precision": 0.7570093457943925,
+        "recall": 0.6090225563909775,
+        "phase": 7,
+        "joint_met": true
+      },
+      {
+        "rows": 318,
+        "positives": 131,
+        "prevalence": 0.4119496855345912,
+        "average_precision": 0.815353962409913,
+        "tp": 76,
+        "fp": 24,
+        "fn": 55,
+        "tn": 163,
+        "precision": 0.76,
+        "recall": 0.5801526717557252,
+        "phase": 8,
+        "joint_met": true
+      },
+      {
+        "rows": 314,
+        "positives": 132,
+        "prevalence": 0.42038216560509556,
+        "average_precision": 0.8125577059102059,
+        "tp": 75,
+        "fp": 21,
+        "fn": 57,
+        "tn": 161,
+        "precision": 0.78125,
+        "recall": 0.5681818181818182,
+        "phase": 9,
+        "joint_met": true
+      },
+      {
+        "rows": 309,
+        "positives": 127,
+        "prevalence": 0.4110032362459547,
+        "average_precision": 0.824788863402365,
+        "tp": 78,
+        "fp": 20,
+        "fn": 49,
+        "tn": 162,
+        "precision": 0.7959183673469388,
+        "recall": 0.6141732283464567,
+        "phase": 10,
+        "joint_met": true
+      },
+      {
+        "rows": 304,
+        "positives": 123,
+        "prevalence": 0.40460526315789475,
+        "average_precision": 0.83526111583274,
+        "tp": 76,
+        "fp": 18,
+        "fn": 47,
+        "tn": 163,
+        "precision": 0.8085106382978723,
+        "recall": 0.6178861788617886,
+        "phase": 11,
+        "joint_met": true
+      },
+      {
+        "rows": 304,
+        "positives": 122,
+        "prevalence": 0.40131578947368424,
+        "average_precision": 0.8344560130284,
+        "tp": 77,
+        "fp": 19,
+        "fn": 45,
+        "tn": 163,
+        "precision": 0.8020833333333334,
+        "recall": 0.6311475409836066,
+        "phase": 12,
+        "joint_met": true
+      },
+      {
+        "rows": 308,
+        "positives": 129,
+        "prevalence": 0.41883116883116883,
+        "average_precision": 0.8401060611335044,
+        "tp": 81,
+        "fp": 18,
+        "fn": 48,
+        "tn": 161,
+        "precision": 0.8181818181818182,
+        "recall": 0.627906976744186,
+        "phase": 13,
+        "joint_met": true
+      }
+    ],
+    "joint_passes": 14,
+    "phase_count": 14,
+    "min_precision": 0.7570093457943925,
+    "min_recall": 0.5681818181818182
+  },
+  "requirements_check": {
+    "precision_gt_0_70": true,
+    "recall_gt_0_50": true,
+    "horizon_ge_24h": true
+  },
+  "feature_importance": [
+    {
+      "feature": "obj_smoke_channels_total",
+      "importance": 19.938900840509564
+    },
+    {
+      "feature": "exp_decay_days_since_onset_7d",
+      "importance": 17.342308203685985
+    },
+    {
+      "feature": "period_est_days",
+      "importance": 13.172608345028541
+    },
+    {
+      "feature": "smoke_channels_detected_max_30d",
+      "importance": 9.75614731991368
+    },
+    {
+      "feature": "days_since_onset",
+      "importance": 9.48714347203096
+    },
+    {
+      "feature": "days_with_smoke_detect_30d",
+      "importance": 8.183471219637335
+    },
+    {
+      "feature": "days_to_next_expected",
+      "importance": 7.747133647011462
+    },
+    {
+      "feature": "gap_std_hist",
+      "importance": 2.7778879670927075
+    },
+    {
+      "feature": "gap_mean_hist",
+      "importance": 2.6180745607127345
+    },
+    {
+      "feature": "smoke_last_unknown_count",
+      "importance": 2.389842589026419
+    },
+    {
+      "feature": "smoke_fault_365d",
+      "importance": 2.0920677169917563
+    },
+    {
+      "feature": "calendar_month",
+      "importance": 1.8136508863369294
+    },
+    {
+      "feature": "smoke_fault_90d",
+      "importance": 1.515840108038512
+    },
+    {
+      "feature": "smoke_detect_30d",
+      "importance": 1.1442365228739229
+    },
+    {
+      "feature": "object_id",
+      "importance": 0.020686601109496636
+    }
+  ],
+  "known_limitations": [
+    "target is an unverified sensor-onset proxy, not an ODS-confirmed fire",
+    "2026 H1 was inspected in earlier project iterations and is a reused test",
+    "registry has no channel validity dates; historical mapping and channel totals assume the supplied snapshot is applicable",
+    "ид_объект is an engineering object; equivalence to a physical collector requires organizer confirmation",
+    "the default high-precision threshold has recall below 0.50 on 2025 H2 alone; full-year 2025 and all 14 non-overlapping 2026 phases pass the requested limits"
+  ]
+}

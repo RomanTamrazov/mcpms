@@ -1,0 +1,2 @@
+"""Independently deployable model adapters."""
+

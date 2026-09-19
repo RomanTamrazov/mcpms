@@ -24,7 +24,7 @@ jobs:
       run:
         working-directory: website
     env:
-      NEXT_PUBLIC_BASE_PATH: /mcpms
+      NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,8 +42,11 @@ jobs:
         run: |
           mkdir -p pages
           cp -R dist/client/. pages/
-          cp -R dist/client/mcpms/. pages/
-          rm -rf pages/mcpms
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+          if [ -d "pages/$REPO_NAME" ]; then
+            cp -R "pages/$REPO_NAME/." pages/
+            rm -rf "pages/$REPO_NAME"
+          fi
           cp pages/index.html pages/404.html
           touch pages/.nojekyll
       - name: Configure GitHub Pages
