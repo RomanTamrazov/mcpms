@@ -52,7 +52,7 @@ export default function InteractiveMap({
           <span>Условная схема коллекторов и узлов</span>
         </div>
         <div className="scheme-status">
-          <span><i className="scheme-live" /> Данные актуальны</span>
+          <span><i className="scheme-live" /> Демонстрационная схема</span>
           <b>1 пикет = 10 м</b>
         </div>
       </div>

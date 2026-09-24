@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import './premium.css';
 
 export const metadata: Metadata = {
   title: 'МосКоллектор — Предиктивный мониторинг',
@@ -12,8 +13,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f1efe9' },
-    { media: '(prefers-color-scheme: dark)', color: '#100e15' },
+    { media: '(prefers-color-scheme: light)', color: '#f8f9fb' },
+    { media: '(prefers-color-scheme: dark)', color: '#111318' },
   ],
 };
 

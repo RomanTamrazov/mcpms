@@ -47,6 +47,12 @@ jobs:
             cp -R "pages/$REPO_NAME/." pages/
             rm -rf "pages/$REPO_NAME"
           fi
+          # Keep direct links and refresh working for the client-side routes.
+          find pages -type f -name '*.html' ! -name 'index.html' -print0 | while IFS= read -r -d '' page; do
+            target="${page%.html}/index.html"
+            mkdir -p "$(dirname "$target")"
+            cp "$page" "$target"
+          done
           cp pages/index.html pages/404.html
           touch pages/.nojekyll
       - name: Configure GitHub Pages

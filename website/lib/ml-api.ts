@@ -10,6 +10,9 @@ export type UiPrediction = {
   horizon: string;
   time: string;
   status: string;
+  scoreKind?: string;
+  targetNote?: string;
+  autoIncidentConfirmation?: boolean;
 };
 
 export type UiPredictionContext = {
@@ -45,11 +48,29 @@ type ApiPrediction = {
     state: string;
   }[];
   historical_match?: string;
+  score_kind?: string;
+  target_note?: string;
+  auto_incident_confirmation?: boolean;
+  risk_alert?: boolean;
 };
 
 export type MlPredictionFeed = {
   items: UiPrediction[];
   contexts: Record<string, UiPredictionContext>;
+};
+
+export type MlModelStatus = {
+  id: string;
+  display_name: string;
+  status: string;
+  serving_ready?: boolean;
+  error?: string | null;
+  horizon_hours?: number;
+};
+
+export type MlHealth = {
+  status: string;
+  models: MlModelStatus[];
 };
 
 const riskLabels: Record<ApiPrediction['risk'], UiRisk> = {
@@ -66,6 +87,25 @@ function apiBaseUrl() {
     return 'http://localhost:8000';
   }
   return '';
+}
+
+export function hasMlApiUrl() {
+  return Boolean(apiBaseUrl());
+}
+
+export async function fetchMlHealth(signal?: AbortSignal): Promise<MlHealth | null> {
+  const baseUrl = apiBaseUrl();
+  if (!baseUrl) return null;
+  const response = await fetch(`${baseUrl}/health`, {
+    signal,
+    headers: { Accept: 'application/json' },
+  });
+  if (!response.ok) throw new Error(`ML API returned ${response.status}`);
+  const body = (await response.json()) as Partial<MlHealth>;
+  return {
+    status: typeof body.status === 'string' ? body.status : 'degraded',
+    models: Array.isArray(body.models) ? body.models : [],
+  };
 }
 
 function horizonLabel(hours: number) {
@@ -104,6 +144,9 @@ export async function fetchMlPredictions(signal?: AbortSignal): Promise<MlPredic
     horizon: horizonLabel(prediction.horizon_hours),
     time: timeLabel(prediction.created_at),
     status: 'Новое',
+    scoreKind: prediction.score_kind,
+    targetNote: prediction.target_note,
+    autoIncidentConfirmation: prediction.auto_incident_confirmation,
   }));
   const contexts = Object.fromEntries(
     source.map((prediction) => [
