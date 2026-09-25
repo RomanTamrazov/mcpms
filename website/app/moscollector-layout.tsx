@@ -62,11 +62,12 @@ export function Header({
     incidents: 'Журнал',
     equipment: 'Оборудование',
     maintenance: 'Заявки',
+    schedule: 'Графики ППР и ТО',
     analytics: 'Аналитика',
   };
   const categories: Record<Section, string> = {
     dashboard: 'Обзор', map: 'Мониторинг', predictions: 'Мониторинг',
-    incidents: 'Операции', equipment: 'Активы', maintenance: 'Операции', analytics: 'Аналитика',
+    incidents: 'Операции', equipment: 'Активы', maintenance: 'Операции', schedule: 'Операции', analytics: 'Аналитика',
   };
   return (
     <header className="topbar">

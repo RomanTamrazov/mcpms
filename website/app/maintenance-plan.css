@@ -1,0 +1,33 @@
+.plan-source-note { display: flex; gap: 12px; align-items: flex-start; margin: 0 0 18px; padding: 14px 16px; border: 1px solid var(--border); border-left: 3px solid #d97706; border-radius: 12px; background: var(--surface); color: var(--muted); font-size: 13px; line-height: 1.55; }
+.plan-source-note svg { flex: 0 0 auto; color: #d97706; margin-top: 2px; }
+.plan-source-note p { margin: 0; }
+.plan-source-note strong, .plan-source-note code { color: var(--text); }
+.plan-source-note code { font-size: .94em; }
+.plan-tabs { display: flex; gap: 8px; margin: 0 0 16px; }
+.plan-tabs button { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); color: var(--muted); font: inherit; cursor: pointer; }
+.plan-tabs button.active { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 9%, var(--surface)); color: var(--primary); font-weight: 650; }
+.plan-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 16px; }
+.plan-metrics article { display: grid; gap: 4px; min-height: 114px; padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.plan-metrics span, .plan-metrics small { color: var(--muted); font-size: 12px; }
+.plan-metrics strong { margin-top: auto; font-size: 28px; letter-spacing: -.04em; }
+.plan-filter { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 0 0 16px; }
+.plan-filter label { color: var(--muted); font-size: 13px; }
+.plan-filter select { min-height: 38px; padding: 0 32px 0 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; }
+.plan-table-panel { margin-bottom: 16px; }
+.plan-badge { display: inline-flex; align-items: center; min-height: 28px; padding: 0 9px; border-radius: 999px; background: var(--surface-muted); color: var(--muted); font-size: 11px; font-weight: 650; }
+.plan-table th, .plan-table td { white-space: nowrap; }
+.plan-table td { vertical-align: top; }
+.plan-table td:first-child { min-width: 180px; }
+.plan-table td small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; white-space: normal; }
+.maintenance-chart { display: grid; grid-template-columns: repeat(12, minmax(38px, 1fr)); align-items: end; gap: 8px; height: 240px; padding: 14px 6px 0; }
+.maintenance-chart article { display: grid; grid-template-rows: 180px auto auto; justify-items: center; gap: 5px; min-width: 0; color: var(--muted); font-size: 11px; }
+.maintenance-chart strong { color: var(--text); font-size: 12px; }
+.maintenance-chart-bar { display: flex; align-items: end; width: min(100%, 32px); height: 180px; overflow: hidden; border-radius: 7px 7px 3px 3px; background: var(--surface-muted); }
+.maintenance-chart-bar i { display: block; width: 100%; }
+.maintenance-chart-bar .to, .plan-legend .to { background: #2563eb; }
+.maintenance-chart-bar .to-tr, .plan-legend .to-tr { background: #f59e0b; }
+.maintenance-chart-bar .tr, .plan-legend .tr { background: #dc2626; }
+.plan-legend { display: flex; gap: 16px; padding: 4px 6px 16px; color: var(--muted); font-size: 12px; }
+.plan-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.plan-legend i { width: 9px; height: 9px; border-radius: 50%; }
+@media (max-width: 760px) { .plan-metrics { grid-template-columns: 1fr; } .plan-tabs { overflow-x: auto; } .plan-tabs button { flex: 0 0 auto; } .maintenance-chart { gap: 4px; } .maintenance-chart article { font-size: 10px; } .plan-source-note { font-size: 12px; } }

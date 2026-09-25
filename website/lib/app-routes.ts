@@ -5,6 +5,7 @@ export const sections = [
   'incidents',
   'equipment',
   'maintenance',
+  'schedule',
   'analytics',
 ] as const;
 

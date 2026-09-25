@@ -2,7 +2,7 @@
 import type { MapObject } from './interactive-map';
 import { type Section } from '@/lib/app-routes';
 import { type EquipmentImportRow } from '@/lib/equipment-import';
-import { BarChart3, Factory, LayoutDashboard, Map, Siren, Sparkles, Wrench } from 'lucide-react';
+import { BarChart3, CalendarDays, Factory, LayoutDashboard, Map, Siren, Sparkles, Wrench } from 'lucide-react';
 
 
 export type Risk = 'Критический' | 'Высокий' | 'Средний' | 'Низкий';
@@ -187,14 +187,15 @@ export const nav: { id: Section; label: string; icon: typeof LayoutDashboard }[]
   { id: 'incidents', label: 'Журнал', icon: Siren },
   { id: 'equipment', label: 'Оборудование', icon: Factory },
   { id: 'maintenance', label: 'Заявки', icon: Wrench },
+  { id: 'schedule', label: 'Графики ППР и ТО', icon: CalendarDays },
   { id: 'analytics', label: 'Аналитика', icon: BarChart3 },
 ];
 
 
 
 export const roleSections: Record<Exclude<UserRole, 'manager'>, Section[]> = {
-  dispatcher: ['dashboard', 'map', 'predictions', 'incidents', 'equipment', 'maintenance', 'analytics'],
-  technician: ['dashboard', 'map', 'equipment', 'maintenance'],
+  dispatcher: ['dashboard', 'map', 'predictions', 'incidents', 'equipment', 'maintenance', 'schedule', 'analytics'],
+  technician: ['dashboard', 'map', 'equipment', 'maintenance', 'schedule'],
 };
 
 

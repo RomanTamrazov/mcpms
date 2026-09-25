@@ -14,9 +14,11 @@ import { Predictions, PredictionDetail } from './moscollector-predictions';
 import { Incidents } from './moscollector-journal';
 import { EquipmentPage, EquipmentDetail } from './moscollector-equipment';
 import { Maintenance } from './moscollector-maintenance';
+import { MaintenancePlan } from './moscollector-maintenance-plan';
 import { Analytics } from './moscollector-analytics';
 import { AdminPanel } from './moscollector-admin';
 import { Login } from './moscollector-auth';
+import './maintenance-plan.css';
 
 
 export default function MoscollectorApp() {
@@ -290,7 +292,8 @@ export default function MoscollectorApp() {
             markNotificationRead(id);
             setNotificationsOpen(false);
             if (id === 'ml-api') notify('Проверьте доступность ML API и конфигурацию моделей');
-            else if (id !== 'system-ok') go('predictions', id);
+            else if (id !== 'system-ok' && activePredictions.some((item) => item.id === id)) go('predictions', id);
+            else if (id !== 'system-ok') notify('Прогноз уже не доступен в текущей ленте; откройте раздел «Прогнозы»');
           }}
         />
       </>
@@ -325,7 +328,7 @@ export default function MoscollectorApp() {
             />
           ))}
           <span className="nav-caption nav-caption-second">Операции</span>
-          {visibleNav.filter((item) => ['equipment', 'maintenance'].includes(item.id)).map((item) => (
+          {visibleNav.filter((item) => ['equipment', 'maintenance', 'schedule'].includes(item.id)).map((item) => (
             <NavButton key={item.id} item={item} active={section === item.id} onClick={() => go(item.id)} />
           ))}
           {visibleNav.some((item) => ['analytics', 'incidents'].includes(item.id)) && <span className="nav-caption nav-caption-second">Анализ</span>}
@@ -414,6 +417,7 @@ export default function MoscollectorApp() {
               <EquipmentPage go={go} notify={notify} />
             ))}
           {section === 'maintenance' && <Maintenance notify={notify} user={currentUser} openRequestId={detail} onSwitchRole={(next) => { window.sessionStorage.setItem('moscollector-demo-next', next === 'analytics' ? '/analytics/' : sectionPath('maintenance', detail)); setCurrentUser(null); storeCurrentUser(null); window.history.pushState({}, '', deploymentPath('/login/')); }} />}
+          {section === 'schedule' && <MaintenancePlan />}
           {section === 'analytics' && <Analytics notify={notify} go={go} />}
         </div>
       </main>
@@ -443,7 +447,8 @@ export default function MoscollectorApp() {
           markNotificationRead(id);
           setNotificationsOpen(false);
           if (id === 'ml-api') notify('Проверьте доступность ML API и конфигурацию моделей');
-          else if (id !== 'system-ok') go('predictions', id);
+          else if (id !== 'system-ok' && activePredictions.some((item) => item.id === id)) go('predictions', id);
+          else if (id !== 'system-ok') notify('Прогноз уже не доступен в текущей ленте; откройте раздел «Прогнозы»');
         }}
       />
     </div>
