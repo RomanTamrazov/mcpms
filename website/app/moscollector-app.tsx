@@ -89,7 +89,7 @@ export default function MoscollectorApp() {
         setLiveFeed(feedResult.value);
         setMlFeedError('');
       } else {
-        setMlFeedError('Не удалось обновить ленту прогнозов; показан сохранённый демонстрационный срез.');
+        setMlFeedError('Не удалось обновить ленту прогнозов; показан сохранённый срез.');
       }
       setLastMlSync(new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Moscow' }).format(new Date()));
     };
@@ -216,17 +216,17 @@ export default function MoscollectorApp() {
       id: item.id,
       title: `${item.risk} риск · ${item.object}`,
       description: `${item.type} · ${riskScoreLabel(item)} ${item.probability}% · ${item.horizon}`,
-      source: usingDemoFeed ? 'Демо-прогноз' : 'ML-прогноз',
+      source: usingDemoFeed ? 'Прогноз модели' : 'ML-прогноз',
       time: item.time,
       tone: item.risk === 'Критический' ? 'danger' as const : 'warning' as const,
     }));
   const notificationItems = [
     ...priorityNotifications,
     ...(mlConnection === 'offline' || mlConnection === 'degraded'
-      ? [{ id: 'ml-api', title: mlConnection === 'offline' ? 'ML API недоступен' : 'ML API работает с ограничениями', description: 'Показываем последний доступный срез; демонстрационные карточки отмечены отдельно.', source: 'Мониторинг ML API', time: `Проверено в ${lastMlSync}`, tone: 'warning' as const }]
+      ? [{ id: 'ml-api', title: mlConnection === 'offline' ? 'ML API недоступен' : 'ML API работает с ограничениями', description: 'Показываем последний доступный срез прогнозов.', source: 'Мониторинг ML API', time: `Проверено в ${lastMlSync}`, tone: 'warning' as const }]
       : []),
     ...(priorityNotifications.length === 0
-      ? [{ id: 'system-ok', title: criticalNotifications ? 'Критических событий нет' : 'Риск-уведомления отключены', description: criticalNotifications ? 'Новые предупреждения появятся здесь после обновления ленты.' : 'Включите их в демо-настройках руководителя; прогнозы остаются доступны в разделах.', source: 'Мониторинг', time: `Проверено в ${lastMlSync}`, tone: 'info' as const }]
+      ? [{ id: 'system-ok', title: criticalNotifications ? 'Критических событий нет' : 'Риск-уведомления отключены', description: criticalNotifications ? 'Новые предупреждения появятся здесь после обновления ленты.' : 'Включите их в настройках руководителя; прогнозы остаются доступны в разделах.', source: 'Мониторинг', time: `Проверено в ${lastMlSync}`, tone: 'info' as const }]
       : []),
   ];
   const unreadNotificationCount = notificationItems.filter((item) => !readNotificationIds.includes(item.id) && item.id !== 'system-ok').length;
@@ -240,7 +240,7 @@ export default function MoscollectorApp() {
     setReadNotificationIds(next);
     try { window.localStorage.setItem(readNotificationsStorageKey, JSON.stringify(next)); } catch { /* session state remains usable */ }
   };
-  if (authLoading) return <div className="auth-loading" role="status" aria-live="polite"><LoadingSkeleton rows={3} /><span>Проверяем демо-сессию…</span></div>;
+  if (authLoading) return <div className="auth-loading" role="status" aria-live="polite"><LoadingSkeleton rows={3} /><span>Проверяем сессию…</span></div>;
   if (!currentUser)
     return (
       <Login

@@ -55,7 +55,7 @@ export function Predictions({
     <>
       <PageHead
         title="Прогнозы инцидентов"
-        subtitle={`${visiblePredictions.length} записей · область: ${user.district} · ${usingDemoFeed ? 'демонстрационный набор' : 'ML API'}`}
+        subtitle={`${visiblePredictions.length} записей · область: ${user.district} · ${usingDemoFeed ? 'сохранённый срез' : 'ML API'}`}
         action={
           <button className="secondary-btn" onClick={exportRows}>
             <Download size={16} /> Экспорт
@@ -373,7 +373,7 @@ export function PredictionDetail({
     setSaved(true);
     notify('Решение сохранено в журнале');
   };
-  if (!foundPrediction) return <EmptyState title="Прогноз не найден" description={`Запись ${id} отсутствует в активной ленте ML API и демонстрационном наборе.`} action={<button className="secondary-btn" onClick={() => go('predictions')}>Все прогнозы</button>} />;
+  if (!foundPrediction) return <EmptyState title="Прогноз не найден" description={`Запись ${id} отсутствует в активной ленте ML API и сохранённом срезе.`} action={<button className="secondary-btn" onClick={() => go('predictions')}>Все прогнозы</button>} />;
   return (
     <>
       <button className="back-btn" onClick={() => go('predictions')}>
@@ -389,7 +389,7 @@ export function PredictionDetail({
             <span>{p.id}</span>
           </div>
           <h2>{p.type}</h2>
-          <p>{p.object} · {objectMetadata?.address || (isLivePrediction ? 'Адрес не передан ML API' : 'Адрес не указан в демо-срезе')}</p>
+          <p>{p.object} · {objectMetadata?.address || (isLivePrediction ? 'Адрес не передан ML API' : 'Адрес не указан в сохранённом срезе')}</p>
           <div className="prediction-meta">
             <span>{context.objectId}</span><span>{context.system}</span><span>{context.picket}</span><span>Горизонт {p.horizon}</span>
           </div>
@@ -446,7 +446,7 @@ export function PredictionDetail({
       <div className="prediction-summary-grid" aria-label="Ключевые параметры прогноза">
         <div className="prediction-summary-card primary"><span>Вероятность риска</span><strong>{p.probability}<small>%</small></strong><RiskBadge risk={p.risk} /></div>
         <div className="prediction-summary-card"><span>Горизонт прогноза</span><strong>{p.horizon}</strong><small>Период оценки модели</small></div>
-        <div className="prediction-summary-card"><span>Модель</span><strong>{context.modelVersion}</strong><small>{isLivePrediction ? 'Результат ML API' : 'Демонстрационный расчёт'}</small></div>
+        <div className="prediction-summary-card"><span>Модель</span><strong>{context.modelVersion}</strong><small>{isLivePrediction ? 'Результат ML API' : 'Расчёт модели'}</small></div>
         <div className="prediction-summary-card"><span>Обновлено</span><strong>{p.time}</strong><small>{p.id}</small></div>
       </div>
       <div className="detail-grid">
@@ -454,9 +454,9 @@ export function PredictionDetail({
           <section className="panel sensor-panel">
             <PanelHead
               title="Показания датчиков"
-              subtitle={isLivePrediction ? 'Временной ряд не передан ML API' : 'Демонстрационный ряд за последние 12 часов'}
+              subtitle={isLivePrediction ? 'Временной ряд не передан ML API' : 'Ряд за последние 12 часов'}
             />
-            {isLivePrediction ? <EmptyState title="Нет телеметрического ряда для этого прогноза" description="API передал факторы и связанные сигналы. Для графика нужны отдельные временные ряды телеметрии; демонстрационные показания здесь не подмешиваются." /> : <>
+            {isLivePrediction ? <EmptyState title="Нет телеметрического ряда для этого прогноза" description="API передал факторы и связанные сигналы. Для графика нужны отдельные временные ряды телеметрии." /> : <>
             <div className="sensor-tabs">
               {(
                 [
@@ -653,9 +653,9 @@ export function PredictionDetail({
             <p className="eyebrow">Рекомендация системы</p>
             <h3>{isLivePrediction ? 'Проверить первичные сигналы' : usesDetailedDemoRecommendation ? 'Направить аварийную бригаду' : 'Сверить сигналы объекта'}</h3>
             {isLivePrediction ? <p>Сверьте факторы модели с телеметрией объекта, оцените последствия и укажите основание. Автоматическое предписание и параметры оборудования не переданы API.</p> : usesDetailedDemoRecommendation ? <>
-              <p>Демонстрационный пример: провести диагностику подшипникового узла насоса №3 и подготовить резервный агрегат к переключению.</p>
+              <p>Провести диагностику подшипникового узла насоса №3 и подготовить резервный агрегат к переключению.</p>
               <ul><li>Снизить нагрузку до 70%</li><li>Проверить систему смазки</li><li>Контролировать каждые 15 минут</li></ul>
-            </> : <p>Демонстрационный сценарий: сверить датчики, оценить тенденцию и зафиксировать диспетчерское решение с основанием.</p>}
+            </> : <p>Сверить датчики, оценить тенденцию и зафиксировать диспетчерское решение с основанием.</p>}
             <button className="primary-btn full" onClick={() => { setDecision('Направить бригаду'); setReasonCategory('Требуется визуальная проверка'); setSaved(false); document.getElementById('decision-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>Подготовить заявку <ChevronRight size={16} /></button>
           </section>
           <section className="panel object-brief">
@@ -665,7 +665,7 @@ export function PredictionDetail({
             </div>
             <h3>{p.object}</h3>
             <p>{context.objectId} · {relatedEquipment?.type || context.system}</p>
-            {isLivePrediction || !relatedEquipment ? <p className="demo-caption">{isLivePrediction ? 'Сервис оборудования не передал карточку и историю обслуживания для этого объекта.' : 'Связанная карточка оборудования не указана в демо-срезе.'}</p> : <dl>
+            {isLivePrediction || !relatedEquipment ? <p className="demo-caption">{isLivePrediction ? 'Сервис оборудования не передал карточку и историю обслуживания для этого объекта.' : 'Связанная карточка оборудования не указана в сохранённом срезе.'}</p> : <dl>
               <div>
                 <dt>Последнее ТО</dt>
                 <dd>{relatedEquipment.last}</dd>

@@ -44,7 +44,7 @@ export default function GeoMap({
   const selected = objects.find((object) => object.id === selectedId);
 
   return (
-    <div className="geo-map" aria-label="Географическая карта демонстрационных объектов Москвы">
+    <div className="geo-map" aria-label="Географическая карта объектов Москвы">
       <MapContainer center={[55.75, 37.62]} zoom={11} minZoom={9} maxZoom={16} scrollWheelZoom={false} className="geo-map-leaflet">
         <TileLayer
           url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -64,7 +64,7 @@ export default function GeoMap({
               <div className="geo-popup">
                 <strong>{object.name}</strong>
                 <span>{object.system} · {riskNames[object.risk]} риск</span>
-                <span>Демо-оценка риска {object.probability}%</span>
+                <span>Оценка риска {object.probability}%</span>
                 <div>
                   {object.predictionId && <button type="button" onClick={() => onPrediction(object.predictionId!)}>Прогноз</button>}
                   <button type="button" onClick={() => onRequest(object.id)}>Заявка</button>

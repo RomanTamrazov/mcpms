@@ -123,8 +123,8 @@ export function Maintenance({ notify, user, openRequestId, onSwitchRole }: { not
     <>
       <PageHead
         title="Заявки"
-        subtitle="Рекомендации системы и контроль исполнения · демонстрационный контур"
-        action={isTechnician ? <button className="secondary-btn" onClick={() => onSwitchRole('analytics')}>Сменить демо-роль</button> : undefined}
+        subtitle="Рекомендации системы и контроль исполнения"
+        action={isTechnician ? <button className="secondary-btn" onClick={() => onSwitchRole('analytics')}>Сменить роль</button> : undefined}
       />
       <div className={`maintenance-board${isTechnician ? ' technician-board' : ''}`}>
         {!isTechnician && (
@@ -304,7 +304,7 @@ export function Maintenance({ notify, user, openRequestId, onSwitchRole }: { not
                         </div>
                       </div>
                     )}
-                    {!isTechnician && <div className="demo-role-hint"><strong>Изменение статуса — задача технического специалиста</strong><p>Для прохождения полного сценария откройте демо-вход и выберите роль «Технический персонал». Заявка сохранится в этом браузере.</p><button className="secondary-btn" onClick={() => onSwitchRole()}>Сменить демо-роль</button></div>}
+                    {!isTechnician && <div className="demo-role-hint"><strong>Изменение статуса — задача технического специалиста</strong><p>Для обработки заявки войдите в роли «Технический персонал». Заявка сохранится в этом браузере.</p><button className="secondary-btn" onClick={() => onSwitchRole()}>Сменить роль</button></div>}
                   </div>
                 )}
                 <div>

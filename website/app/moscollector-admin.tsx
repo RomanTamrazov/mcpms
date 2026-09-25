@@ -319,10 +319,10 @@ export function AdminPanel({
           <section className="panel admin-config-card">
             <div className="admin-section-head">
               <span className="metric-icon green"><Activity size={20} /></span>
-              <div><h3>Интеграции</h3><p>Состояние демонстрационного контура</p></div>
+              <div><h3>Интеграции</h3><p>Состояние подключённых сервисов</p></div>
             </div>
             <div className="integration-list">
-              <div><span><i className="source-ok" />СМВУ</span><b>Демо-поток · read-only</b></div>
+              <div><span><i className="source-ok" />СМВУ</span><b>Поток мониторинга · read-only</b></div>
               <div><span><i className="source-ok" />Реестр оборудования</span><b>Синхронизирован</b></div>
               <div><span><i className="source-mock" />Журнал ОДС</span><b>Имитатор REST API</b></div>
               <div><span><i className="source-mock" />Система заявок</span><b>Имитатор REST API</b></div>
@@ -335,10 +335,10 @@ export function AdminPanel({
           <section className="panel admin-config-card">
             <div className="admin-section-head">
               <span className="metric-icon purple"><SlidersHorizontal size={20} /></span>
-              <div><h3>Рабочие параметры</h3><p>Локальные демо-настройки этого браузера</p></div>
+              <div><h3>Рабочие параметры</h3><p>Локальные настройки этого браузера</p></div>
             </div>
             <label><span>Обновление ленты ML API</span><select value={refreshInterval} onChange={(event) => setRefreshInterval(event.target.value)}><option value="0.5">Каждые 30 секунд</option><option value="1">Каждую минуту</option><option value="5">Каждые 5 минут</option><option value="15">Каждые 15 минут</option><option value="manual">Вручную</option></select></label>
-            <label className="settings-check" htmlFor="claim-lock" aria-label="Блокировка обработки"><input id="claim-lock" type="checkbox" checked disabled readOnly /><span><strong>Блокировка обработки</strong><small>Всегда включена в демо-браузере. Для межпользовательской блокировки требуется backend.</small></span></label>
+            <label className="settings-check" htmlFor="claim-lock" aria-label="Блокировка обработки"><input id="claim-lock" type="checkbox" checked disabled readOnly /><span><strong>Блокировка обработки</strong><small>Включена в этом браузере. Для межпользовательской блокировки требуется backend.</small></span></label>
             <label className="settings-check" htmlFor="critical-notifications" aria-label="Критические уведомления"><input id="critical-notifications" type="checkbox" checked={criticalNotifications} onChange={(event) => setCriticalNotifications(event.target.checked)} /><span><strong>Критические уведомления</strong><small>Показывать уведомления внутри приложения</small></span></label>
             <button className="primary-btn" onClick={() => {
               window.localStorage.setItem('moscollector-ui-settings', JSON.stringify({ refreshInterval, criticalNotifications }));
@@ -349,7 +349,7 @@ export function AdminPanel({
           <section className="panel admin-config-card audit-card">
             <div className="admin-section-head">
               <span className="metric-icon yellow"><ShieldCheck size={20} /></span>
-              <div><h3>Аудит действий</h3><p>Последние события демонстрационного стенда</p></div>
+              <div><h3>Аудит действий</h3><p>Последние события системы</p></div>
             </div>
             <div className="audit-list">
               <p><strong>Вход руководителя</strong><span>Только что · {user.name}</span></p>

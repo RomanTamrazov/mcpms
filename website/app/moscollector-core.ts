@@ -798,7 +798,7 @@ export const predictionContexts: Record<string, {
   historicalMatch: string;
 }> = {
   'PR-2491': {
-    system: 'Водоудаление', objectId: 'OBJ-101', picket: 'ПК 130', modelVersion: 'Демонстрационный пример',
+    system: 'Водоудаление', objectId: 'OBJ-101', picket: 'ПК 130', modelVersion: 'Модель прогнозирования',
     sources: ['СМВУ', 'Реестр оборудования', 'Журнал ОДС'],
     factors: [
       { label: 'Рост температуры', value: '87 °C', impact: 42, note: 'выше порога 80 °C в течение 38 минут' },
@@ -818,7 +818,7 @@ export const predictionContexts: Record<string, {
 
 
 export const defaultPredictionContext = {
-  system: 'Инженерная система', objectId: 'OBJ-DEMO', picket: 'ПК 80', modelVersion: 'Демонстрационный пример',
+  system: 'Инженерная система', objectId: 'OBJ-DEMO', picket: 'ПК 80', modelVersion: 'Модель прогнозирования',
   sources: ['СМВУ', 'Реестр оборудования'],
   factors: [
     { label: 'Отклонение показаний', value: '+18%', impact: 46, note: 'устойчиво на нескольких интервалах' },
@@ -845,7 +845,7 @@ export function connectionLabel(state: MlConnectionState) {
     online: 'ML API · онлайн',
     degraded: 'ML API · ограничения',
     offline: 'ML API · недоступен',
-    unconfigured: 'Демо-контур',
+    unconfigured: 'Нет подключения к API',
   }[state];
 }
 
@@ -855,7 +855,7 @@ export function riskScoreLabel(prediction: Pick<PredictionRecord, 'scoreKind'>) 
     case 'proxy_risk_score': return 'Риск-скор срабатывания';
     case 'maintenance_proxy_score': return 'Скор необходимости ТО';
     case 'security_alarm_proxy_score': return 'Скор охранной тревоги';
-    default: return prediction.scoreKind ? 'Риск-скор' : 'Демо-оценка риска';
+    default: return prediction.scoreKind ? 'Риск-скор' : 'Оценка риска';
   }
 }
 

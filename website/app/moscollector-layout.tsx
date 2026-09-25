@@ -82,8 +82,8 @@ export function Header({
         <button className="command-trigger" onClick={onOpenSearch} aria-label="Поиск по системе, Control или Command K">
           <Search size={16} /><span>Поиск по системе</span><kbd>⌘ K</kbd>
         </button>
-        <StatusBadge tone={usingDemoFeed ? 'neutral' : mlConnection === 'online' ? 'success' : mlConnection === 'degraded' || mlConnection === 'offline' ? 'warning' : 'neutral'} className="topbar-system-status" title={usingDemoFeed ? `Показана демонстрационная лента. ${connectionLabel(mlConnection)}` : connectionLabel(mlConnection)}>
-          <i className={`system-dot ${usingDemoFeed ? 'demo' : mlConnection}`} />{usingDemoFeed ? 'Демо-данные' : connectionLabel(mlConnection)}
+        <StatusBadge tone={usingDemoFeed ? 'neutral' : mlConnection === 'online' ? 'success' : mlConnection === 'degraded' || mlConnection === 'offline' ? 'warning' : 'neutral'} className="topbar-system-status" title={usingDemoFeed ? `Показан сохранённый срез. ${connectionLabel(mlConnection)}` : connectionLabel(mlConnection)}>
+          <i className={`system-dot ${usingDemoFeed ? 'demo' : mlConnection}`} />{usingDemoFeed ? 'Сохранённый срез' : connectionLabel(mlConnection)}
         </StatusBadge>
         <span className="shift-badge">
           Смена 01 <i /> {user.district === 'Все округа' ? 'Все округа' : user.district}

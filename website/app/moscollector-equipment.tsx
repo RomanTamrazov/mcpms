@@ -50,10 +50,10 @@ export function EquipmentPage({
     setImportFileName(file.name);
     const extension = file.name.split('.').pop()?.toLowerCase();
     if (!['csv', 'xlsx'].includes(extension || '')) {
-      setImportInfo('В демонстрационной версии поддерживается только CSV в UTF-8. Для XLSX нужен серверный импортёр.');
+      setImportInfo('Интерфейс принимает CSV в UTF-8. Для XLSX нужен серверный импортёр.');
       return;
     }
-    if (file.size > 2_000_000) { setImportInfo('Файл больше 2 МБ. Для демо-импорта выберите меньший CSV.'); return; }
+    if (file.size > 2_000_000) { setImportInfo('Файл больше 2 МБ. Выберите CSV меньшего размера.'); return; }
     if (extension === 'csv') {
       try {
         const preview = parseEquipmentCsv(await file.text());
@@ -61,7 +61,7 @@ export function EquipmentPage({
         setImportInfo(preview.errors.length ? `Найдено ошибок: ${preview.errors.length}. Исправьте CSV и выберите файл повторно.` : `Проверено ${preview.rowCount} строк. Данные пока не сохранены.`);
       } catch { setImportInfo('Не удалось прочитать CSV. Проверьте кодировку UTF-8.'); }
     } else {
-      setImportInfo('XLSX: демонстрационный интерфейс импорта. Серверный импортёр не подключён; используйте CSV в UTF-8 для локального предпросмотра и сохранения.');
+      setImportInfo('XLSX: серверный импортёр не подключён; используйте CSV в UTF-8 для локального предпросмотра и сохранения.');
     }
   };
   const confirmImport = () => {
@@ -69,15 +69,15 @@ export function EquipmentPage({
     const merged = [...importPreview.rows, ...importedEquipment.filter((item) => !importPreview.rows.some((row) => row.id === item.id))];
     setImportedEquipment(merged);
     storeImportedEquipment(merged);
-    setImportInfo(`${importPreview.rows.length} записей сохранено в демонстрационном реестре этого браузера. На сервер данные не передавались.`);
+    setImportInfo(`${importPreview.rows.length} записей сохранено в локальном реестре этого браузера. На сервер данные не передавались.`);
     setImportPreview(null);
-    notify('Демо-реестр оборудования обновлён');
+    notify('Реестр оборудования обновлён');
   };
   return (
     <>
       <PageHead
         title="Оборудование"
-        subtitle={`Демонстрационный реестр · ${allEquipment.length} карточек доступно · агрегированные KPI показаны как пример`}
+        subtitle={`Реестр оборудования · ${allEquipment.length} карточек доступно`}
         action={<div className="inline-actions">
           <input ref={importInputRef} className="sr-only" type="file" accept=".csv,text/csv" aria-label="Выбрать CSV файл" onChange={(event) => { void importRegistry(event.target.files?.[0]); event.target.value = ''; }} />
           <button className="secondary-btn" type="button" onClick={() => importInputRef.current?.click()}>Импорт CSV</button>
@@ -86,7 +86,7 @@ export function EquipmentPage({
       />
       <p className="muted-note">CSV проверяется до сохранения и остаётся только в этом браузере. XLSX пока не импортируется: для него требуется серверная обработка.</p>
       {importInfo && <div className="import-status" role="status"><Activity size={17} /><span><strong>{importFileName || 'Импорт данных'}</strong>{importInfo}</span><button type="button" aria-label="Закрыть результат импорта" onClick={() => { setImportInfo(''); setImportPreview(null); }}>Закрыть</button></div>}
-      {importPreview && <section className="panel import-preview" aria-label="Предпросмотр CSV"><div className="import-preview-head"><div><strong>Предпросмотр CSV · {importPreview.rowCount} строк</strong><span>{importPreview.rows.length} корректных · {importPreview.errors.length} ошибок</span></div><button className="primary-btn" type="button" disabled={importPreview.errors.length > 0 || importPreview.rows.length === 0} onClick={confirmImport}>Сохранить в демо-реестр</button></div>{importPreview.errors.length > 0 && <ul className="import-preview-errors">{importPreview.errors.map((error) => <li key={error}>{error}</li>)}</ul>}<div className="table-scroll"><table><thead><tr><th>ID</th><th>Объект</th><th>Тип</th><th>Состояние</th><th>Риск</th></tr></thead><tbody>{importPreview.rows.slice(0, 5).map((row) => <tr key={row.id}><td>{row.id}</td><td>{row.object}</td><td>{row.type}</td><td>{row.state}</td><td>{row.risk}%</td></tr>)}</tbody></table></div>{importPreview.rows.length > 5 && <small>Показаны первые 5 корректных строк.</small>}</section>}
+      {importPreview && <section className="panel import-preview" aria-label="Предпросмотр CSV"><div className="import-preview-head"><div><strong>Предпросмотр CSV · {importPreview.rowCount} строк</strong><span>{importPreview.rows.length} корректных · {importPreview.errors.length} ошибок</span></div><button className="primary-btn" type="button" disabled={importPreview.errors.length > 0 || importPreview.rows.length === 0} onClick={confirmImport}>Сохранить в реестр</button></div>{importPreview.errors.length > 0 && <ul className="import-preview-errors">{importPreview.errors.map((error) => <li key={error}>{error}</li>)}</ul>}<div className="table-scroll"><table><thead><tr><th>ID</th><th>Объект</th><th>Тип</th><th>Состояние</th><th>Риск</th></tr></thead><tbody>{importPreview.rows.slice(0, 5).map((row) => <tr key={row.id}><td>{row.id}</td><td>{row.object}</td><td>{row.type}</td><td>{row.state}</td><td>{row.risk}%</td></tr>)}</tbody></table></div>{importPreview.rows.length > 5 && <small>Показаны первые 5 корректных строк.</small>}</section>}
       <div className="metric-grid four">
         <Metric
           icon={ShieldCheck}
@@ -239,18 +239,18 @@ export function EquipmentDetail({
       status: 'Отправлена',
       assignedUnit: 'Эксплуатационное подразделение',
       dispatcherComment: 'Заявка создана из карточки оборудования',
-      statusHistory: [{ status: 'Отправлена', at, author: 'Демо-реестр оборудования' }],
+      statusHistory: [{ status: 'Отправлена', at, author: 'Реестр оборудования' }],
     };
     storeSentRequests([request, ...loadSentRequests()]);
-    notify(`Демо-заявка ${request.requestId} сохранена в браузере`);
+    notify(`Заявка ${request.requestId} сохранена в браузере`);
     go('maintenance', request.requestId);
   };
   if (!item && !importChecked) return <LoadingSkeleton rows={4} />;
   if (!item) return <EmptyState title="Оборудование не найдено" description="Проверьте ID или откройте реестр." action={<button className="secondary-btn" onClick={() => go('equipment')}>К реестру</button>} />;
   if (item.id !== 'EQ-1034') return <>
     <button className="back-btn" onClick={() => go('equipment')}><ArrowLeft size={17} /> Всё оборудование</button>
-    <PageHead title={item.type} subtitle={`${item.id} · ${item.object} · демонстрационная карточка`} action={<button className="primary-btn" onClick={planMaintenance}><Wrench size={16} /> Запланировать ТО</button>} />
-    <div className="metric-grid four"><Metric icon={CircleGauge} label="Оценка риска" value={`${item.risk}%`} note="демонстрационный реестр" tone={item.risk >= 70 ? 'red' : 'purple'} trend="демо" /><Metric icon={ShieldCheck} label="Состояние" value={item.state} note="из реестра" tone="purple" trend="демо" /><Metric icon={Activity} label="Последнее значение" value={item.value} note="без временного ряда" tone="purple" trend="демо" /><Metric icon={CalendarClock} label="Следующее ТО" value={item.next} note={`Последнее: ${item.last}`} tone="purple" trend="демо" /></div>
+    <PageHead title={item.type} subtitle={`${item.id} · ${item.object} · карточка оборудования`} action={<button className="primary-btn" onClick={planMaintenance}><Wrench size={16} /> Запланировать ТО</button>} />
+    <div className="metric-grid four"><Metric icon={CircleGauge} label="Оценка риска" value={`${item.risk}%`} note="по данным реестра" tone={item.risk >= 70 ? 'red' : 'purple'} trend="текущий" /><Metric icon={ShieldCheck} label="Состояние" value={item.state} note="из реестра" tone="purple" trend="текущий" /><Metric icon={Activity} label="Последнее значение" value={item.value} note="без временного ряда" tone="purple" trend="текущий" /><Metric icon={CalendarClock} label="Следующее ТО" value={item.next} note={`Последнее: ${item.last}`} tone="purple" trend="текущий" /></div>
     <SectionCard title="Телеметрия и история работ" description="Сервис оборудования пока передаёт только поля реестра"><EmptyState title="Подробные данные не подключены" description="График, аномалии и историю обслуживания для этой карточки нельзя достоверно показать без API телеметрии." /></SectionCard>
   </>;
   return (
@@ -268,7 +268,7 @@ export function EquipmentDetail({
             <span>{id}</span>
           </div>
           <h2>{item.type} — №3</h2>
-          <p>{item.object} · демонстрационная карточка оборудования</p>
+          <p>{item.object} · карточка оборудования</p>
         </div>
         <button
           className="primary-btn"

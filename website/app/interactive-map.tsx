@@ -52,7 +52,7 @@ export default function InteractiveMap({
           <span>Условная схема коллекторов и узлов</span>
         </div>
         <div className="scheme-status">
-          <span><i className="scheme-live" /> Демонстрационная схема</span>
+          <span><i className="scheme-live" /> Схема объектов</span>
           <b>1 пикет = 10 м</b>
         </div>
       </div>
@@ -176,7 +176,7 @@ export default function InteractiveMap({
         </div>
         <span><i className="sensor-symbol" /> датчик</span>
         <span><b className="junction-symbol">У</b> узел сопряжения</span>
-        <span className="demo-badge">Демонстрационная топология</span>
+        <span className="demo-badge">Топология объектов</span>
       </div>
     </div>
   );

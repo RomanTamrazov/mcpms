@@ -116,7 +116,7 @@ export function MapPage({
       sentAt: at,
       status: 'Отправлена',
       assignedUnit: 'Эксплуатационное подразделение',
-      dispatcherComment: 'Заявка создана из демонстрационной карты',
+      dispatcherComment: 'Заявка создана из карты объектов',
       statusHistory: [{ status: 'Отправлена', at, author: user.name }],
     };
     storeSentRequests([request, ...loadSentRequests()]);
@@ -129,10 +129,10 @@ export function MapPage({
       fact: 'Ожидается',
       decision: 'Заявка',
       dispatcher: user.name,
-      comment: 'Создана заявка из демонстрационной карты',
+      comment: 'Создана заявка из карты объектов',
       status: 'В работе',
     });
-    notify(`Демо-заявка ${request.requestId} создана в браузере`);
+    notify(`Заявка ${request.requestId} создана в браузере`);
     go('maintenance', request.requestId);
   };
   return (
@@ -217,7 +217,7 @@ export function MapPage({
           <button type="button" role="tab" aria-selected={mode === 'scheme'} className={mode === 'scheme' ? 'active' : ''} onClick={() => setMode('scheme')}>Схема сети</button>
           <button type="button" role="tab" aria-selected={mode === 'map'} className={mode === 'map' ? 'active' : ''} onClick={() => setMode('map')}>Карта</button>
         </div>
-        <span>{mode === 'map' ? 'Демо-координаты · подложка OpenStreetMap' : 'Демонстрационная топология сети'}</span>
+        <span>{mode === 'map' ? 'Условные координаты · подложка OpenStreetMap' : 'Топология сети'}</span>
       </div>
       <div className="map-layout">
         <div className="real-map-wrap">
@@ -254,10 +254,10 @@ export function MapPage({
               <AlertTriangle size={17} />
               <span>
                 <strong>Требуется проверка сигнала</strong>
-                <small>Оценка выполнена по демонстрационной топологии; событие не подтверждено.</small>
+                <small>Оценка требует проверки диспетчером; событие не подтверждено.</small>
               </span>
             </div>
-            <p className="object-equipment-type">Оборудование: {equipment.find((item) => item.object === predictions.find((prediction) => prediction.id === selected.predictionId)?.object)?.type || 'тип не передан в демо-реестре'}</p>
+            <p className="object-equipment-type">Оборудование: {equipment.find((item) => item.object === predictions.find((prediction) => prediction.id === selected.predictionId)?.object)?.type || 'тип не передан в реестре'}</p>
             <button
               className="primary-btn full"
               disabled={!selected.predictionId}

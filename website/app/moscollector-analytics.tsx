@@ -38,7 +38,7 @@ export function Analytics({ notify, go }: { notify: (s: string) => void; go: (s:
     <>
       <PageHead
         title="Аналитика модели"
-        subtitle={`Демонстрационные показатели · выбранный период: ${period}`}
+        subtitle={`Показатели модели · выбранный период: ${period}`}
         action={
           <div className="inline-actions">
             <select
@@ -55,8 +55,8 @@ export function Analytics({ notify, go }: { notify: (s: string) => void; go: (s:
               className="secondary-btn"
               onClick={() => {
                 downloadFile(
-                  'analytics-demo-report.csv',
-                  `\uFEFFДемонстрационный показатель;Значение\nПериод;${period}\nПрогнозы;${totalForecasts}\nPrecision;${formatPercent(precision)}\nRecall;${formatPercent(recall)}\nСреднее время реакции;${reaction} мин`,
+                  'analytics-report.csv',
+                  `\uFEFFПоказатель;Значение\nПериод;${period}\nПрогнозы;${totalForecasts}\nPrecision;${formatPercent(precision)}\nRecall;${formatPercent(recall)}\nСреднее время реакции;${reaction} мин`,
                   'text/csv;charset=utf-8',
                 );
                 notify('Аналитический отчёт выгружен');
@@ -67,7 +67,7 @@ export function Analytics({ notify, go }: { notify: (s: string) => void; go: (s:
           </div>
         }
       />
-      <SectionCard title="Итоги текущего демо-сценария" description="Фактические действия, сохранённые в этом браузере" className="demo-outcome-card" action={<button className="secondary-btn" onClick={() => go('incidents')}>Открыть журнал</button>}>
+      <SectionCard title="Итоги текущей смены" description="Действия, сохранённые в этом браузере" className="demo-outcome-card" action={<button className="secondary-btn" onClick={() => go('incidents')}>Открыть журнал</button>}>
         <div className="demo-outcome-grid"><div><span>Решений в журнале</span><strong>{sessionJournal.length}</strong></div><div><span>Создано заявок</span><strong>{sessionRequests.length + sessionArchive.length}</strong></div><div><span>Завершено / отклонено</span><strong>{sessionArchive.length}</strong></div></div>
         {latestSessionRequest ? <div className="demo-outcome-latest"><span>Последняя заявка</span><strong>{latestSessionRequest.requestId} · {latestSessionRequest.object}</strong><small>Статус: {latestSessionRequest.status}</small><button className="secondary-btn" onClick={() => go('maintenance', latestSessionRequest.requestId)}>Открыть заявку <ChevronRight size={16} /></button></div> : <EmptyState title="Сценарий ещё не начат" description="Откройте критический прогноз и оформите решение диспетчера: результат появится здесь." action={<button className="secondary-btn" onClick={() => go('predictions')}>К прогнозам</button>} />}
       </SectionCard>
@@ -78,7 +78,7 @@ export function Analytics({ notify, go }: { notify: (s: string) => void; go: (s:
           value={totalForecasts.toLocaleString('ru-RU')}
           note="за выбранный период"
           tone="purple"
-          trend="демо-срез"
+          trend="сохранённый срез"
         />
         <Metric
           icon={CircleGauge}
@@ -86,7 +86,7 @@ export function Analytics({ notify, go }: { notify: (s: string) => void; go: (s:
           value={formatPercent(precision)}
           note="взвешенное среднее · цель ≥ 88%"
           tone={precision >= 88 ? 'green' : 'yellow'}
-          trend="демо-срез"
+          trend="сохранённый срез"
         />
         <Metric
           icon={Activity}
@@ -94,7 +94,7 @@ export function Analytics({ notify, go }: { notify: (s: string) => void; go: (s:
           value={formatPercent(recall)}
           note="взвешенное среднее · цель ≥ 84%"
           tone={recall >= 84 ? 'green' : 'yellow'}
-          trend="демо-срез"
+          trend="сохранённый срез"
         />
         <Metric
           icon={Clock3}
@@ -102,14 +102,14 @@ export function Analytics({ notify, go }: { notify: (s: string) => void; go: (s:
           value={`${reaction} мин`}
           note="целевое ≤ 25 мин"
           tone="purple"
-          trend="демо-срез"
+          trend="сохранённый срез"
         />
       </div>
       <div className="analytics-grid">
         <section className="panel analytics-wide">
           <PanelHead
             title="Качество прогнозирования"
-            subtitle="Демо-срез · Precision и Recall по месяцам"
+            subtitle="Precision и Recall по месяцам"
           />
           <div className="legend">
             <span>
@@ -137,7 +137,7 @@ export function Analytics({ notify, go }: { notify: (s: string) => void; go: (s:
         <section className="panel">
           <PanelHead
             title="Распределение рисков"
-            subtitle="Демо-срез · доля прогнозов за выбранный период"
+            subtitle="Доля прогнозов за выбранный период"
           />
           <div className="donut-wrap">
             <ResponsiveContainer width="100%" height={210} minWidth={0} initialDimension={{ width: 420, height: 210 }}>

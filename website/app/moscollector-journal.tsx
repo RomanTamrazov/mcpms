@@ -83,7 +83,7 @@ export function Incidents({ notify }: { notify: (s: string) => void }) {
     <>
       <PageHead
         title="Журнал"
-        subtitle="Сопоставление прогнозов, фактов и решений диспетчеров · демонстрационный срез"
+        subtitle="Сопоставление прогнозов, фактов и решений диспетчеров"
         action={
           <button className="secondary-btn" onClick={exportJournal}>
             <Download size={16} /> Выгрузить журнал

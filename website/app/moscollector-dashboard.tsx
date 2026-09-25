@@ -77,14 +77,14 @@ export function Dashboard({
       />
       {mlFeedError && <ErrorState title="Лента прогнозов не обновилась" description={mlFeedError} />}
       <div className="metric-grid four dashboard-kpis">
-        <Metric icon={TrendingDown} label="Объекты на схеме" value={String(visibleObjects.length)} note="Демонстрационная топология" tone="purple" trend="под наблюдением" />
-        <Metric icon={AlertTriangle} label="Критический риск" value={String(criticalCount)} note="Требует решения" tone="red" trend={usingDemoFeed ? 'демо-срез' : 'ML API'} />
-        <Metric icon={Siren} label="Высокий риск" value={String(highCount)} note="Активных прогнозов" tone="orange" trend={usingDemoFeed ? 'демо-срез' : 'ML API'} />
-        <Metric icon={ShieldCheck} label="Датчики онлайн" value={sensorCount ? `${Math.round(onlineSensorCount / sensorCount * 100)}%` : '—'} note={`${onlineSensorCount} из ${sensorCount} на схеме`} tone="green" trend="демо-топология" />
+        <Metric icon={TrendingDown} label="Объекты на схеме" value={String(visibleObjects.length)} note="Топология объектов" tone="purple" trend="под наблюдением" />
+        <Metric icon={AlertTriangle} label="Критический риск" value={String(criticalCount)} note="Требует решения" tone="red" trend={usingDemoFeed ? 'сохранённый срез' : 'ML API'} />
+        <Metric icon={Siren} label="Высокий риск" value={String(highCount)} note="Активных прогнозов" tone="orange" trend={usingDemoFeed ? 'сохранённый срез' : 'ML API'} />
+        <Metric icon={ShieldCheck} label="Датчики онлайн" value={sensorCount ? `${Math.round(onlineSensorCount / sensorCount * 100)}%` : '—'} note={`${onlineSensorCount} из ${sensorCount} на схеме`} tone="green" trend="топология" />
       </div>
       <div className="dashboard-feature-grid">
         <section className="panel critical-intelligence" aria-label="Приоритетный прогноз">
-          <div className="critical-intelligence-top"><span className="eyebrow"><i className="critical-live-dot" /> Приоритет смены</span><span className="critical-source">{usingDemoFeed ? 'Демонстрационный прогноз' : 'ML API'}</span></div>
+          <div className="critical-intelligence-top"><span className="eyebrow"><i className="critical-live-dot" /> Приоритет смены</span><span className="critical-source">{usingDemoFeed ? 'Прогноз модели' : 'ML API'}</span></div>
           {recommendedPrediction ? <>
             <div className="critical-intelligence-score"><span className="critical-score-value">{recommendedPrediction.probability}<small>%</small></span><RiskBadge risk={recommendedPrediction.risk} /></div>
             <h3>{recommendedPrediction.object}</h3>
@@ -121,7 +121,7 @@ export function Dashboard({
             <p>Проверка {lastMlSync} · {refreshInterval === 'manual' ? 'обновление вручную' : `обновление ленты каждые ${refreshInterval === '0.5' ? '30 секунд' : `${refreshInterval} мин`}`}</p>
           </div>
           <StatusBadge tone={usingDemoFeed ? 'info' : 'success'}>
-            {usingDemoFeed ? 'Демонстрационный набор' : 'Данные из ML API'}
+            {usingDemoFeed ? 'Сохранённый срез' : 'Данные из ML API'}
           </StatusBadge>
         </div>
         <div className="system-overview-models">
@@ -135,10 +135,10 @@ export function Dashboard({
                 </div>
               ))}
             </div>
-          ) : <EmptyState title={mlConnection === 'unconfigured' ? 'Демо-режим' : 'Реестр моделей недоступен'} description={mlConnection === 'unconfigured' ? 'Показываем прозрачный демонстрационный срез. Реальные результаты появятся после подключения API.' : 'Интерфейс сохраняет карточки последнего успешного ответа или демонстрационный срез.'} />}
+          ) : <EmptyState title={mlConnection === 'unconfigured' ? 'Нет подключения к API' : 'Реестр моделей недоступен'} description={mlConnection === 'unconfigured' ? 'Показываем сохранённый срез. Результаты API появятся после подключения сервиса.' : 'Интерфейс сохраняет карточки последнего успешного ответа или сохранённый срез.'} />}
         </div>
         <div className="system-overview-footer">
-          <span>{usingDemoFeed ? 'Данные страницы содержат демонстрационные примеры' : `Реальных активных прогнозов: ${activePredictions.length}`}</span>
+          <span>{usingDemoFeed ? 'Показан сохранённый срез прогнозов' : `Активных прогнозов: ${activePredictions.length}`}</span>
           <span>Датчики на схеме: {onlineSensorCount} / {sensorCount} онлайн</span>
         </div>
         </div>
@@ -147,7 +147,7 @@ export function Dashboard({
         <section className="panel chart-panel">
           <PanelHead
             title="Динамика за 24 часа"
-            subtitle="Демонстрационный тренд прогнозов и инцидентов"
+            subtitle="Тренд прогнозов и инцидентов"
             link="Аналитика"
             onClick={() => go('analytics')}
           />
@@ -236,7 +236,7 @@ export function DashboardSupport({
 }) {
   return (
     <div className="dashboard-support-grid">
-      <SectionCard title="Последние события" description={usingDemoFeed ? 'Демо-срез активных сигналов' : 'События из подключённого контура'} className="dashboard-events-card">
+      <SectionCard title="Последние события" description={usingDemoFeed ? 'Срез активных сигналов' : 'События из подключённого контура'} className="dashboard-events-card">
         <div className="dashboard-event-list">
           {eventItems.length > 0 ? eventItems.map((event) => (
             <div className="dashboard-event" key={event.predictionId}>
@@ -306,7 +306,7 @@ export function MiniMap({
       })}
       <div className="dashboard-map-legend"><span><i className="legend-critical" /> Критический</span><span><i className="legend-high" /> Высокий</span><span><i className="legend-normal" /> Норма</span></div>
       <button className="dashboard-map-open" onClick={onMap}>Исследовать схему <ChevronRight size={15} /></button>
-      <div className="map-attribution">Демонстрационная топология · ОДС</div>
+      <div className="map-attribution">Топология объектов · ОДС</div>
     </div>
   );
 }

@@ -85,7 +85,7 @@ export function Login({
             </div>
             <strong>МосКоллектор</strong>
           </div>
-          <p className="eyebrow">Демонстрационный доступ</p>
+          <p className="eyebrow">Рабочий доступ</p>
           <h2>Вход в систему</h2>
           <p>Роли в конкурсной версии работают локально в браузере. Для промышленного доступа требуется интеграция с LDAP/AD.</p>
           <label>
@@ -107,19 +107,19 @@ export function Login({
             />
           </label>
           <div className="login-options">
-            <span>Демо-сессия сохраняется в этом браузере</span>
+            <span>Сессия сохраняется в этом браузере</span>
             <button type="button" onClick={() => setHelp(!help)}>
               Забыли пароль?
             </button>
           </div>
           {help && (
             <div className="login-message">
-              Выберите демо-роль ниже: учётные данные автоматически появятся в форме.
+              Выберите роль ниже: учётные данные автоматически появятся в форме.
             </div>
           )}
           {error && <div className="login-error">{error}</div>}
           <div className="demo-login-list">
-            <span>Демо-роли</span>
+            <span>Роли доступа</span>
             {[
               ['Диспетчер', defaultDispatcherAccounts[0]],
               ['Технический персонал', defaultDispatcherAccounts[2]],
@@ -139,7 +139,7 @@ export function Login({
           <div className="login-help">
             <ShieldCheck size={17} />
             <span>
-              Демонстрационные учётные записи не предоставляют доступ к промышленным данным.
+              Локальные учётные записи не предоставляют доступ к промышленным данным.
             </span>
           </div>
         </form>
