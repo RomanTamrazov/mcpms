@@ -1,10 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Activity, Bell, Building2, Check, LogOut, Pencil, Search, ShieldCheck, SlidersHorizontal, Trash2, UserPlus, Users } from 'lucide-react';
+import { Activity, Bell, Check, LogOut, Pencil, Search, ShieldCheck, SlidersHorizontal, Trash2, UserPlus, Users } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/enterprise';
 import { type MlHealth } from '@/lib/ml-api';
 import { UserRole, UserAccount, roleLabels, managerAccount, loadDispatcherAccounts, storeDispatcherAccounts, MlConnectionState, connectionLabel } from './moscollector-core';
 import { ThemeToggle, PageHead } from './moscollector-layout';
+import { BrandIdentity } from './moscollector-brand';
 
 
 export function AdminPanel({
@@ -146,13 +147,7 @@ export function AdminPanel({
     <div className="admin-shell">
       <header className="admin-topbar">
         <div className="brand">
-          <div className="brand-mark">
-            <Building2 size={19} />
-          </div>
-          <div>
-            <strong>МосКоллектор</strong>
-            <span>Панель руководителя</span>
-          </div>
+          <BrandIdentity />
         </div>
         <div className="admin-profile">
           <button className="command-trigger" onClick={onOpenSearch} aria-label="Поиск по системе, Control или Command K">

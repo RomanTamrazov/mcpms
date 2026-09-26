@@ -1,8 +1,9 @@
 'use client';
 import { useState } from 'react';
-import { Building2, ChevronRight, ShieldCheck } from 'lucide-react';
+import { ChevronRight, ShieldCheck } from 'lucide-react';
 import { UserAccount, managerAccount, defaultDispatcherAccounts, loadDispatcherAccounts } from './moscollector-core';
 import { ThemeToggle } from './moscollector-layout';
+import { BrandIdentity } from './moscollector-brand';
 
 
 export function Login({
@@ -26,13 +27,7 @@ export function Login({
       </div>
       <div className="login-aside">
         <div className="brand login-brand">
-          <div className="brand-mark">
-            <Building2 size={20} />
-          </div>
-          <div>
-            <strong>МосКоллектор</strong>
-            <span>Правительство Москвы</span>
-          </div>
+          <BrandIdentity />
         </div>
         <div>
           <span className="login-tag">
@@ -80,10 +75,7 @@ export function Login({
           }}
         >
           <div className="login-mobile-brand">
-            <div className="brand-mark">
-              <Building2 size={19} />
-            </div>
-            <strong>МосКоллектор</strong>
+            <BrandIdentity />
           </div>
           <p className="eyebrow">Рабочий доступ</p>
           <h2>Вход в систему</h2>

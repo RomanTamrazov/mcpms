@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { parseAppPath, sectionPath, type Section } from '@/lib/app-routes';
-import { Activity, AlertTriangle, Bell, Building2, Check, Factory, LogOut, PanelLeftClose, PanelLeftOpen, RefreshCcw, SlidersHorizontal, Users } from 'lucide-react';
+import { Activity, AlertTriangle, Bell, Check, Factory, LogOut, PanelLeftClose, PanelLeftOpen, RefreshCcw, SlidersHorizontal, Users } from 'lucide-react';
 import { LoadingSkeleton } from '@/components/ui/enterprise';
 import { fetchMlHealth, fetchMlPredictions, hasMlApiUrl, type MlHealth, type MlPredictionFeed } from '@/lib/ml-api';
 import { UserRole, UserAccount, roleLabels, themeStorageKey, readNotificationsStorageKey, deploymentBasePath, deploymentPath, storeCurrentUser, loadCurrentUser, nav, roleSections, MlConnectionState, predictions, equipment, riskScoreLabel } from './moscollector-core';
@@ -18,6 +18,7 @@ import { MaintenancePlan } from './moscollector-maintenance-plan';
 import { Analytics } from './moscollector-analytics';
 import { AdminPanel } from './moscollector-admin';
 import { Login } from './moscollector-auth';
+import { BrandIdentity } from './moscollector-brand';
 import './maintenance-plan.css';
 
 
@@ -305,13 +306,7 @@ export default function MoscollectorApp() {
     <div className={`app-shell${sidebarCollapsed ? ' is-collapsed' : ''}`}>
       <aside className={`sidebar ${menuOpen ? 'sidebar-open' : ''}`}>
         <div className="brand">
-          <div className="brand-mark">
-            <Building2 size={19} />
-          </div>
-          <div>
-            <strong>МосКоллектор</strong>
-            <span>Ситуационный центр</span>
-          </div>
+          <BrandIdentity />
           <button className="sidebar-collapse" type="button" aria-label={sidebarCollapsed ? 'Развернуть боковую панель' : 'Свернуть боковую панель'} title={sidebarCollapsed ? 'Развернуть панель' : 'Свернуть панель'} onClick={toggleSidebar}>
             {sidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
           </button>

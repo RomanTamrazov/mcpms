@@ -4717,6 +4717,7 @@ button.dashboard-event:hover strong { color: var(--primary); }
 .geo-map, .geo-map-leaflet { width: 100%; height: 100%; min-height: 520px; }
 .geo-map { position: relative; overflow: hidden; background-color: #e9edf4; background-image: linear-gradient(90deg, rgba(98,70,217,.07) 1px, transparent 1px), linear-gradient(rgba(98,70,217,.07) 1px, transparent 1px); background-size: 32px 32px; }
 .geo-map .leaflet-container { background: transparent; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; }
+.geo-map .leaflet-control-attribution { display: none !important; }
 .geo-map-data-note, .geo-map-offline { position: absolute; z-index: 500; left: 12px; max-width: min(380px, calc(100% - 24px)); padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: color-mix(in srgb, var(--surface) 93%, transparent); color: var(--text); font-size: 11px; box-shadow: var(--shadow-sm); }
 .geo-map-data-note { top: 12px; }
 .geo-map-offline { bottom: 34px; }

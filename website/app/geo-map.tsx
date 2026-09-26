@@ -120,10 +120,9 @@ export default function GeoMap({
 
   return (
     <div className="geo-map" aria-label="Географическая карта объектов Москвы">
-      <MapContainer center={[55.75, 37.62]} zoom={11} minZoom={9} maxZoom={16} scrollWheelZoom={false} className="geo-map-leaflet">
+      <MapContainer center={[55.75, 37.62]} zoom={11} minZoom={9} maxZoom={16} scrollWheelZoom={false} attributionControl={false} className="geo-map-leaflet">
         <TileLayer
           url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
           eventHandlers={{ tileerror: () => setTilesUnavailable(true), tileload: () => setTilesUnavailable(false) }}
         />
         <FollowSelection selected={selected} />
