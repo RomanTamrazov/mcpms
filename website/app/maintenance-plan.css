@@ -19,15 +19,19 @@
 .plan-table td { vertical-align: top; }
 .plan-table td:first-child { min-width: 180px; }
 .plan-table td small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; white-space: normal; }
-.maintenance-chart { display: grid; grid-template-columns: repeat(12, minmax(38px, 1fr)); align-items: end; gap: 8px; height: 240px; padding: 14px 6px 0; }
-.maintenance-chart article { display: grid; grid-template-rows: 180px auto auto; justify-items: center; gap: 5px; min-width: 0; color: var(--muted); font-size: 11px; }
-.maintenance-chart strong { color: var(--text); font-size: 12px; }
-.maintenance-chart-bar { display: flex; align-items: end; width: min(100%, 32px); height: 180px; overflow: hidden; border-radius: 7px 7px 3px 3px; background: var(--surface-muted); }
-.maintenance-chart-bar i { display: block; width: 100%; }
-.maintenance-chart-bar .to, .plan-legend .to { background: #2563eb; }
-.maintenance-chart-bar .to-tr, .plan-legend .to-tr { background: #f59e0b; }
-.maintenance-chart-bar .tr, .plan-legend .tr { background: #dc2626; }
+.maintenance-chart-scroll { overflow-x: auto; padding: 8px 8px 0; scrollbar-width: thin; }
+.maintenance-chart { display: grid; grid-template-columns: repeat(12, minmax(92px, 1fr)); align-items: end; gap: 8px; min-width: 1160px; padding: 6px 0 2px; }
+.maintenance-chart article { display: grid; grid-template-rows: 190px auto auto; justify-items: center; gap: 5px; min-width: 0; padding: 8px 6px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface-soft); color: var(--muted); font-size: 10px; }
+.maintenance-chart article > strong { color: var(--text); font-size: 11px; }
+.maintenance-chart-bars { display: grid; grid-template-columns: repeat(3, 1fr); align-items: end; gap: 5px; width: 100%; height: 190px; }
+.maintenance-chart-bars > span { display: grid; grid-template-rows: 18px 142px 22px; align-items: end; justify-items: center; min-width: 0; }
+.maintenance-chart-bars b { color: var(--text); font-size: 10px; font-variant-numeric: tabular-nums; }
+.maintenance-chart-bars i { display: block; width: 100%; max-width: 16px; border-radius: 4px 4px 2px 2px; }
+.maintenance-chart-bars small { align-self: center; color: var(--muted); font-size: 8px; white-space: nowrap; }
+.maintenance-chart-bars .to, .plan-legend .to { background: #2563eb; }
+.maintenance-chart-bars .to-tr, .plan-legend .to-tr { background: #f59e0b; }
+.maintenance-chart-bars .tr, .plan-legend .tr { background: #dc2626; }
 .plan-legend { display: flex; gap: 16px; padding: 4px 6px 16px; color: var(--muted); font-size: 12px; }
 .plan-legend span { display: inline-flex; align-items: center; gap: 6px; }
 .plan-legend i { width: 9px; height: 9px; border-radius: 50%; }
-@media (max-width: 760px) { .plan-metrics { grid-template-columns: 1fr; } .plan-tabs { overflow-x: auto; } .plan-tabs button { flex: 0 0 auto; } .maintenance-chart { gap: 4px; } .maintenance-chart article { font-size: 10px; } .plan-source-note { font-size: 12px; } }
+@media (max-width: 760px) { .plan-metrics { grid-template-columns: 1fr; } .plan-tabs { overflow-x: auto; } .plan-tabs button { flex: 0 0 auto; } .maintenance-chart { gap: 6px; min-width: 1080px; } .plan-source-note { font-size: 12px; } }

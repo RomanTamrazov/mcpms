@@ -134,7 +134,7 @@ export function Maintenance({ notify, user, openRequestId, onSwitchRole }: { not
               <h3>Предлагаемые заявки</h3>
               <p>Сформированы на основе прогнозов</p>
             </div>
-            <span>{proposals.length}</span>
+            <span className="request-count"><strong>{proposals.length}</strong><small>предлагаемых</small></span>
           </div>
           <div className="maintenance-cards">
             {proposals.map((job) => (
@@ -199,7 +199,7 @@ export function Maintenance({ notify, user, openRequestId, onSwitchRole }: { not
               <h3>{isTechnician ? 'Назначенные заявки' : 'Принятые заявки'}</h3>
               <p>{isTechnician ? 'Ожидают ответа техника' : 'Переданы эксплуатационным подразделениям'}</p>
             </div>
-            <span>{sent.length}</span>
+            <span className="request-count"><strong>{sent.length}</strong><small>{isTechnician ? 'назначенных' : 'принятых'}</small></span>
           </div>
           <div className="maintenance-cards">
             {sent.map((job) => (

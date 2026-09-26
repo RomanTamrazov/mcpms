@@ -251,7 +251,26 @@ export function EquipmentDetail({
     <button className="back-btn" onClick={() => go('equipment')}><ArrowLeft size={17} /> Всё оборудование</button>
     <PageHead title={item.type} subtitle={`${item.id} · ${item.object} · карточка оборудования`} action={<button className="primary-btn" onClick={planMaintenance}><Wrench size={16} /> Запланировать ТО</button>} />
     <div className="metric-grid four"><Metric icon={CircleGauge} label="Оценка риска" value={`${item.risk}%`} note="по данным реестра" tone={item.risk >= 70 ? 'red' : 'purple'} trend="текущий" /><Metric icon={ShieldCheck} label="Состояние" value={item.state} note="из реестра" tone="purple" trend="текущий" /><Metric icon={Activity} label="Последнее значение" value={item.value} note="без временного ряда" tone="purple" trend="текущий" /><Metric icon={CalendarClock} label="Следующее ТО" value={item.next} note={`Последнее: ${item.last}`} tone="purple" trend="текущий" /></div>
-    <SectionCard title="Телеметрия и история работ" description="Сервис оборудования пока передаёт только поля реестра"><EmptyState title="Подробные данные не подключены" description="График, аномалии и историю обслуживания для этой карточки нельзя достоверно показать без API телеметрии." /></SectionCard>
+    <div className="equipment-profile-grid">
+      <SectionCard title="Сведения об оборудовании" description="Данные карточки из реестра оборудования">
+        <dl className="equipment-facts">
+          <div><dt>Идентификатор</dt><dd>{item.id}</dd></div>
+          <div><dt>Объект</dt><dd>{item.object}</dd></div>
+          <div><dt>Тип оборудования</dt><dd>{item.type}</dd></div>
+          <div><dt>Текущее состояние</dt><dd>{item.state}</dd></div>
+          <div><dt>Последнее значение</dt><dd>{item.value}</dd></div>
+          <div><dt>Оценка риска</dt><dd>{item.risk}%</dd></div>
+        </dl>
+      </SectionCard>
+      <SectionCard title="Обслуживание" description="Даты из действующего графика">
+        <div className="equipment-service-summary">
+          <div><span>Последнее обслуживание</span><strong>{item.last}</strong></div>
+          <div><span>Следующее ТО</span><strong>{item.next}</strong></div>
+          <p>{item.risk >= 70 ? 'Высокая оценка риска: рекомендуется внеплановая проверка перед следующим плановым ТО.' : 'Оборудование остаётся в плановом контуре обслуживания. Решение о дополнительных работах принимает специалист.'}</p>
+        </div>
+      </SectionCard>
+    </div>
+    <aside className="equipment-data-note"><ShieldCheck size={18} /><span><strong>Графики телеметрии пока недоступны</strong>В реестре есть основные параметры и даты обслуживания. Временные ряды и подтверждённая история работ появятся после подключения API телеметрии.</span></aside>
   </>;
   return (
     <>

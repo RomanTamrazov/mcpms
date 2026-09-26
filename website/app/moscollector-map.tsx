@@ -9,11 +9,6 @@ import { Risk, UserAccount, predictions, SentRequest, loadSentRequests, storeSen
 import { PageHead } from './moscollector-layout';
 
 
-export const InteractiveMap = dynamic(() => import('./interactive-map'), {
-  ssr: false,
-});
-
-
 export const GeoMap = dynamic(() => import('./geo-map'), { ssr: false });
 
 
@@ -29,7 +24,6 @@ export function MapPage({
   user: UserAccount;
   selectedObjectId?: string | null;
 }) {
-  const [mode, setMode] = useState<'scheme' | 'map'>('scheme');
   const [query, setQuery] = useState('');
   const [risk, setRisk] = useState('all');
   const [district, setDistrict] = useState('all');
@@ -139,7 +133,7 @@ export function MapPage({
     <>
       <PageHead
         title="Карта инженерных объектов"
-        subtitle="Схема сети и географическая карта с условными координатами объектов"
+        subtitle="Географическая карта с условными координатами инженерных объектов"
         action={
           <div className="inline-actions">
             <button className="secondary-btn" onClick={exportGeoJson}>
@@ -212,17 +206,10 @@ export function MapPage({
           ))}
         </select>
       </FilterBar>
-      <div className="map-view-toolbar">
-        <div className="map-view-switch" role="tablist" aria-label="Режим карты">
-          <button type="button" role="tab" aria-selected={mode === 'scheme'} className={mode === 'scheme' ? 'active' : ''} onClick={() => setMode('scheme')}>Схема сети</button>
-          <button type="button" role="tab" aria-selected={mode === 'map'} className={mode === 'map' ? 'active' : ''} onClick={() => setMode('map')}>Карта</button>
-        </div>
-        <span>{mode === 'map' ? 'Условные координаты · подложка OpenStreetMap' : 'Топология сети'}</span>
-      </div>
       <div className="map-layout">
         <div className="real-map-wrap">
-          {mode === 'scheme' ? <InteractiveMap objects={filtered} selectedId={selected?.id} onSelect={setSelectedId} /> : <GeoMap objects={filtered} selectedId={selected?.id} onSelect={setSelectedId} onPrediction={(id) => go('predictions', id)} onRequest={openOrCreateRequest} />}
-          {mode === 'map' && filtered.length > 0 && <div className="geo-object-picker"><label htmlFor="geo-object-select">Выбранный объект</label><select id="geo-object-select" value={selected?.id || ''} onChange={(event) => setSelectedId(event.target.value)}>{filtered.map((object) => <option key={object.id} value={object.id}>{object.name}</option>)}</select></div>}
+          <GeoMap objects={filtered} selectedId={selected?.id} onSelect={setSelectedId} onPrediction={(id) => go('predictions', id)} onRequest={openOrCreateRequest} />
+          {filtered.length > 0 && <div className="geo-object-picker"><label htmlFor="geo-object-select">Выбранный объект</label><select id="geo-object-select" value={selected?.id || ''} onChange={(event) => setSelectedId(event.target.value)}>{filtered.map((object) => <option key={object.id} value={object.id}>{object.name}</option>)}</select></div>}
           {filtered.length === 0 && (
             <div className="map-empty">
               <EmptyState title="Объекты не найдены" description="Измените критерии фильтра или сбросьте поиск." />

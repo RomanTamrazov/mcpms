@@ -1,8 +1,8 @@
 'use client';
 import { type Section } from '@/lib/app-routes';
 import { Bell, ChevronRight, Menu, Moon, Search, Sun, type LucideIcon } from 'lucide-react';
-import { MetricCard, PageHeader, StatusBadge } from '@/components/ui/enterprise';
-import { UserAccount, roleLabels, nav, MlConnectionState, connectionLabel } from './moscollector-core';
+import { MetricCard, PageHeader } from '@/components/ui/enterprise';
+import { UserAccount, nav } from './moscollector-core';
 
 
 export function NavButton({
@@ -39,8 +39,6 @@ export function Header({
   onToggleNotifications,
   notificationCount,
   notificationsOpen,
-  mlConnection,
-  usingDemoFeed,
 }: {
   section: Section;
   user: UserAccount;
@@ -52,8 +50,6 @@ export function Header({
   onToggleNotifications: () => void;
   notificationCount: number;
   notificationsOpen: boolean;
-  mlConnection: MlConnectionState;
-  usingDemoFeed: boolean;
 }) {
   const titles: Record<Section, string> = {
     dashboard: 'Ситуационный центр',
@@ -82,9 +78,6 @@ export function Header({
         <button className="command-trigger" onClick={onOpenSearch} aria-label="Поиск по системе, Control или Command K">
           <Search size={16} /><span>Поиск по системе</span><kbd>⌘ K</kbd>
         </button>
-        <StatusBadge tone={usingDemoFeed ? 'neutral' : mlConnection === 'online' ? 'success' : mlConnection === 'degraded' || mlConnection === 'offline' ? 'warning' : 'neutral'} className="topbar-system-status" title={usingDemoFeed ? `Показан сохранённый срез. ${connectionLabel(mlConnection)}` : connectionLabel(mlConnection)}>
-          <i className={`system-dot ${usingDemoFeed ? 'demo' : mlConnection}`} />{usingDemoFeed ? 'Сохранённый срез' : connectionLabel(mlConnection)}
-        </StatusBadge>
         <span className="shift-badge">
           Смена 01 <i /> {user.district === 'Все округа' ? 'Все округа' : user.district}
         </span>
@@ -99,13 +92,6 @@ export function Header({
           <Bell size={19} />
           {notificationCount > 0 && <b>{notificationCount > 9 ? '9+' : notificationCount}</b>}
         </button>
-        <span className="avatar top-avatar" title={`${user.name} · ${roleLabels[user.role]}`} aria-label={`${user.name} · ${roleLabels[user.role]}`}>
-          {user.name
-            .split(' ')
-            .map((part) => part[0])
-            .join('')
-            .slice(0, 2)}
-        </span>
       </div>
     </header>
   );

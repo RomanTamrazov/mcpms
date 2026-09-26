@@ -376,8 +376,6 @@ export default function MoscollectorApp() {
           onToggleNotifications={() => setNotificationsOpen((current) => !current)}
           notificationCount={unreadNotificationCount}
           notificationsOpen={notificationsOpen}
-          mlConnection={mlConnection}
-          usingDemoFeed={usingDemoFeed}
         />
         <div className="content">
           {section === 'dashboard' && (

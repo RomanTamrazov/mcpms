@@ -16,7 +16,8 @@ export function MaintenancePlan() {
   const visiblePpr = useMemo(() => pprSchedule.filter((item) => month === 'Все' || item.month === month), [month]);
   const totalSensors = visiblePpr.reduce((sum, item) => sum + item.sensors, 0);
   const totalEvents = maintenanceByMonth.reduce((sum, item) => sum + item.to + item.toTr + item.tr, 0);
-  const maxEvents = Math.max(...maintenanceByMonth.map((item) => item.to + item.toTr + item.tr));
+  const maxSeriesValue = Math.max(...maintenanceByMonth.flatMap((item) => [item.to, item.toTr, item.tr]));
+  const barHeight = (value: number) => value === 0 ? '0%' : `${Math.max(5, value / maxSeriesValue * 100)}%`;
 
   return (
     <>
@@ -51,7 +52,9 @@ export function MaintenancePlan() {
           </div>
           <section className="panel plan-table-panel">
             <header className="panel-head"><div><h3>Нагрузка плановых работ по месяцам</h3><p>Источник: «График ТО и ТР систем АКМ и ДУ на 2026 г.»</p></div><span className="plan-badge">Помесячно</span></header>
-            <div className="maintenance-chart" aria-label="Количество запланированных операций по месяцам">{maintenanceByMonth.map((item) => { const total = item.to + item.toTr + item.tr; return <article key={item.month}><div className="maintenance-chart-bar" title={`${item.month}: ${total} операций`}><i className="to" style={{ height: `${item.to / maxEvents * 100}%` }} /><i className="to-tr" style={{ height: `${item.toTr / maxEvents * 100}%` }} /><i className="tr" style={{ height: `${item.tr / maxEvents * 100}%` }} /></div><strong>{total}</strong><span>{item.month}</span></article>; })}</div>
+            <div className="maintenance-chart-scroll">
+              <div className="maintenance-chart" aria-label="Количество запланированных операций по месяцам">{maintenanceByMonth.map((item) => { const total = item.to + item.toTr + item.tr; return <article key={item.month} aria-label={`${item.month}: ТО ${item.to}, ТО плюс ТР ${item.toTr}, ТР ${item.tr}, всего ${total}`}><div className="maintenance-chart-bars"><span><b>{item.to}</b><i className="to" style={{ height: barHeight(item.to) }} /><small>ТО</small></span><span><b>{item.toTr}</b><i className="to-tr" style={{ height: barHeight(item.toTr) }} /><small>ТО+ТР</small></span><span><b>{item.tr}</b><i className="tr" style={{ height: barHeight(item.tr) }} /><small>ТР</small></span></div><strong>{item.month}</strong><span>Всего {total}</span></article>; })}</div>
+            </div>
             <div className="plan-legend"><span><i className="to" />ТО</span><span><i className="to-tr" />ТО+ТР</span><span><i className="tr" />ТР</span></div>
           </section>
           <section className="panel plan-table-panel">

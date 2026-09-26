@@ -8,7 +8,6 @@ import { Area, AreaChart, CartesianGrid, Line, ResponsiveContainer, Tooltip, XAx
 import { UserAccount, roleLabels, PredictionRecord, MlConnectionState, JournalEntry, loadJournalEntries, mapObjects, trend, connectionLabel, riskScoreLabel } from './moscollector-core';
 import { PageHead, Metric, PanelHead } from './moscollector-layout';
 import { PredictionTable } from './moscollector-predictions';
-import type { MapObject } from './interactive-map';
 
 
 export function Dashboard({
@@ -94,9 +93,35 @@ export function Dashboard({
           </> : <EmptyState title="Активных прогнозов нет" description="После получения нового сигнала приоритетный объект появится здесь." />}
           <div className="critical-intelligence-foot"><Activity size={15} /> Решение требует проверки диспетчером; оценка модели не подтверждает инцидент.</div>
         </section>
-        <section className="panel map-mini">
-          <PanelHead title="Объекты на схеме" subtitle={`Топология сети · ${visibleObjects.length} объектов`} link="Открыть карту" onClick={() => go('map')} />
-          <MiniMap objects={visibleObjects} selectedId={criticalObject?.id} onSelect={(id) => go('map', id)} onMap={() => go('map')} />
+        <section className="panel chart-panel dashboard-trend-panel">
+          <PanelHead
+            title="Динамика за 24 часа"
+            subtitle="Тренд прогнозов и инцидентов"
+            link="Аналитика"
+            onClick={() => go('analytics')}
+          />
+          <div className="legend">
+            <span><i className="legend-purple" /> Прогнозы</span>
+            <span><i className="legend-orange" /> Инциденты</span>
+          </div>
+          <div className="chart-wrap">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 800, height: 240 }}>
+              <AreaChart data={trend}>
+                <defs>
+                  <linearGradient id="predFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#6246D9" stopOpacity={0.24} />
+                    <stop offset="100%" stopColor="#6246D9" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid vertical={false} stroke="#eeedf3" />
+                <XAxis dataKey="t" axisLine={false} tickLine={false} />
+                <YAxis axisLine={false} tickLine={false} />
+                <Tooltip />
+                <Area type="monotone" dataKey="predictions" stroke="#6246D9" strokeWidth={2.5} fill="url(#predFill)" />
+                <Line type="monotone" dataKey="incidents" stroke="#EA580C" strokeWidth={2.5} dot={false} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </section>
       </div>
       <div className="dashboard-insights-grid">
@@ -144,52 +169,6 @@ export function Dashboard({
         </div>
       </div>
       <div className="dashboard-analysis-grid">
-        <section className="panel chart-panel">
-          <PanelHead
-            title="Динамика за 24 часа"
-            subtitle="Тренд прогнозов и инцидентов"
-            link="Аналитика"
-            onClick={() => go('analytics')}
-          />
-          <div className="legend">
-            <span>
-              <i className="legend-purple" /> Прогнозы
-            </span>
-            <span>
-              <i className="legend-orange" /> Инциденты
-            </span>
-          </div>
-          <div className="chart-wrap">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 800, height: 240 }}>
-              <AreaChart data={trend}>
-                <defs>
-                  <linearGradient id="predFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#6246D9" stopOpacity={0.24} />
-                    <stop offset="100%" stopColor="#6246D9" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid vertical={false} stroke="#eeedf3" />
-                <XAxis dataKey="t" axisLine={false} tickLine={false} />
-                <YAxis axisLine={false} tickLine={false} />
-                <Tooltip />
-                <Area
-                  type="monotone"
-                  dataKey="predictions"
-                  stroke="#6246D9"
-                  strokeWidth={2.5}
-                  fill="url(#predFill)"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="incidents"
-                  stroke="#EA580C"
-                  strokeWidth={2.5}
-                  dot={false}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </section>
         <section className="panel latest-panel">
           <PanelHead
             title="Последние прогнозы"
@@ -212,7 +191,6 @@ export function Dashboard({
     </>
   );
 }
-
 
 
 export function DashboardSupport({
@@ -276,65 +254,5 @@ export function DashboardSupport({
         </div>
       </SectionCard>
     </div>
-  );
-}
-
-
-
-export function MiniMap({
-  objects,
-  selectedId,
-  onSelect,
-  onMap,
-}: {
-  objects: MapObject[];
-  selectedId?: string;
-  onSelect: (id: string) => void;
-  onMap: () => void;
-}) {
-  return (
-    <div className="dashboard-network-map">
-      <svg viewBox="0 0 920 540" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-        <defs><pattern id="dashboard-network-grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M 32 0 L 0 0 0 32" /></pattern></defs>
-        <rect width="920" height="540" fill="url(#dashboard-network-grid)" />
-        <path className="dashboard-network-water" d="M-30 432 C150 365 298 500 486 426 C640 365 770 421 958 346" />
-        {objects.map((object) => <path key={object.id} className={`dashboard-network-line risk-${object.risk} ${object.id === selectedId ? 'selected' : ''}`} d={object.geometry.map(([x,y], index) => `${index ? 'L' : 'M'} ${x} ${y}`).join(' ')} />)}
-      </svg>
-      {objects.map((object) => {
-        const [x, y] = object.geometry[Math.floor(object.geometry.length / 2)];
-        return <MapMarker key={object.id} risk={object.risk} x={`${x / 920 * 100}%`} y={`${y / 540 * 100}%`} label={`${object.name}, риск ${object.probability}%`} selected={object.id === selectedId} onClick={() => onSelect(object.id)} />;
-      })}
-      <div className="dashboard-map-legend"><span><i className="legend-critical" /> Критический</span><span><i className="legend-high" /> Высокий</span><span><i className="legend-normal" /> Норма</span></div>
-      <button className="dashboard-map-open" onClick={onMap}>Исследовать схему <ChevronRight size={15} /></button>
-      <div className="map-attribution">Топология объектов · ОДС</div>
-    </div>
-  );
-}
-
-
-export function MapMarker({
-  risk,
-  x,
-  y,
-  label,
-  selected,
-  onClick,
-}: {
-  risk: string;
-  x: string;
-  y: string;
-  label?: string;
-  selected?: boolean;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      aria-label={label || `Объект, риск: ${risk}`}
-      className={`map-marker marker-${risk} ${selected ? 'selected' : ''}`}
-      style={{ left: x, top: y }}
-      onClick={onClick}
-    >
-      <span />
-    </button>
   );
 }
