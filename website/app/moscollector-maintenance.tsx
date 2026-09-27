@@ -304,7 +304,7 @@ export function Maintenance({ notify, user, openRequestId, onSwitchRole }: { not
                         </div>
                       </div>
                     )}
-                    {!isTechnician && <div className="demo-role-hint"><strong>Изменение статуса — задача технического специалиста</strong><p>Для обработки заявки войдите в роли «Технический персонал». Заявка сохранится в этом браузере.</p><button className="secondary-btn" onClick={() => onSwitchRole()}>Сменить роль</button></div>}
+                    {!isTechnician && <div className="role-hint"><strong>Изменение статуса — задача технического специалиста</strong><p>Для обработки заявки войдите в роли «Технический персонал». Заявка сохранится в этом браузере.</p><button className="secondary-btn" onClick={() => onSwitchRole()}>Сменить роль</button></div>}
                   </div>
                 )}
                 <div>

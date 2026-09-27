@@ -14,13 +14,13 @@ export function Predictions({
   notify,
   user,
   activePredictions,
-  usingDemoFeed,
+  usingSnapshotFeed,
 }: {
   go: (s: Section, id?: string) => void;
   notify: (s: string) => void;
   user: UserAccount;
   activePredictions: PredictionRecord[];
-  usingDemoFeed: boolean;
+  usingSnapshotFeed: boolean;
 }) {
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
@@ -55,7 +55,7 @@ export function Predictions({
     <>
       <PageHead
         title="Прогнозы инцидентов"
-        subtitle={`${visiblePredictions.length} записей · область: ${user.district} · ${usingDemoFeed ? 'сохранённый срез' : 'ML API'}`}
+        subtitle={`${visiblePredictions.length} записей · область: ${user.district} · ${usingSnapshotFeed ? 'сохранённый срез' : 'ML API'}`}
         action={
           <button className="secondary-btn" onClick={exportRows}>
             <Download size={16} /> Экспорт
@@ -223,7 +223,7 @@ export function PredictionDetail({
   const objectMetadata = mapObjects.find((object) => object.id === context.objectId);
   const isLivePrediction = Boolean(liveContexts[p.id]);
   const relatedEquipment = equipment.find((item) => item.object === p.object || p.object.includes(item.object) || item.object.includes(p.object));
-  const usesDetailedDemoRecommendation = p.id === 'PR-2491';
+  const usesDetailedRecommendation = p.id === 'PR-2491';
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem(
@@ -252,7 +252,7 @@ export function PredictionDetail({
     }
   }, [p.id]);
   const claimPrediction = () => {
-    try { window.localStorage.setItem(`moscollector-claim-${p.id}`, dispatcher.name); } catch { /* demo session remains usable */ }
+    try { window.localStorage.setItem(`moscollector-claim-${p.id}`, dispatcher.name); } catch { /* Session state remains usable. */ }
     setClaimedBy(dispatcher.name);
     notify(`Прогноз ${p.id} принят в работу`);
   };
@@ -651,8 +651,8 @@ export function PredictionDetail({
               <Sparkles size={20} />
             </span>
             <p className="eyebrow">Рекомендация системы</p>
-            <h3>{isLivePrediction ? 'Проверить первичные сигналы' : usesDetailedDemoRecommendation ? 'Направить аварийную бригаду' : 'Сверить сигналы объекта'}</h3>
-            {isLivePrediction ? <p>Сверьте факторы модели с телеметрией объекта, оцените последствия и укажите основание. Автоматическое предписание и параметры оборудования не переданы API.</p> : usesDetailedDemoRecommendation ? <>
+            <h3>{isLivePrediction ? 'Проверить первичные сигналы' : usesDetailedRecommendation ? 'Направить аварийную бригаду' : 'Сверить сигналы объекта'}</h3>
+            {isLivePrediction ? <p>Сверьте факторы модели с телеметрией объекта, оцените последствия и укажите основание. Автоматическое предписание и параметры оборудования не переданы API.</p> : usesDetailedRecommendation ? <>
               <p>Провести диагностику подшипникового узла насоса №3 и подготовить резервный агрегат к переключению.</p>
               <ul><li>Снизить нагрузку до 70%</li><li>Проверить систему смазки</li><li>Контролировать каждые 15 минут</li></ul>
             </> : <p>Сверить датчики, оценить тенденцию и зафиксировать диспетчерское решение с основанием.</p>}
@@ -665,7 +665,7 @@ export function PredictionDetail({
             </div>
             <h3>{p.object}</h3>
             <p>{context.objectId} · {relatedEquipment?.type || context.system}</p>
-            {isLivePrediction || !relatedEquipment ? <p className="demo-caption">{isLivePrediction ? 'Сервис оборудования не передал карточку и историю обслуживания для этого объекта.' : 'Связанная карточка оборудования не указана в сохранённом срезе.'}</p> : <dl>
+            {isLivePrediction || !relatedEquipment ? <p className="context-caption">{isLivePrediction ? 'Сервис оборудования не передал карточку и историю обслуживания для этого объекта.' : 'Связанная карточка оборудования не указана в сохранённом срезе.'}</p> : <dl>
               <div>
                 <dt>Последнее ТО</dt>
                 <dd>{relatedEquipment.last}</dd>

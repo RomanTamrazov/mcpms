@@ -15,7 +15,7 @@ export function Dashboard({
   notify,
   user,
   activePredictions,
-  usingDemoFeed,
+  usingSnapshotFeed,
   mlConnection,
   mlHealth,
   mlFeedError,
@@ -27,7 +27,7 @@ export function Dashboard({
   notify: (s: string) => void;
   user: UserAccount;
   activePredictions: PredictionRecord[];
-  usingDemoFeed: boolean;
+  usingSnapshotFeed: boolean;
   mlConnection: MlConnectionState;
   mlHealth: MlHealth | null;
   mlFeedError: string;
@@ -77,13 +77,13 @@ export function Dashboard({
       {mlFeedError && <ErrorState title="Лента прогнозов не обновилась" description={mlFeedError} />}
       <div className="metric-grid four dashboard-kpis">
         <Metric icon={TrendingDown} label="Объекты на схеме" value={String(visibleObjects.length)} note="Топология объектов" tone="purple" trend="под наблюдением" />
-        <Metric icon={AlertTriangle} label="Критический риск" value={String(criticalCount)} note="Требует решения" tone="red" trend={usingDemoFeed ? 'сохранённый срез' : 'ML API'} />
-        <Metric icon={Siren} label="Высокий риск" value={String(highCount)} note="Активных прогнозов" tone="orange" trend={usingDemoFeed ? 'сохранённый срез' : 'ML API'} />
+        <Metric icon={AlertTriangle} label="Критический риск" value={String(criticalCount)} note="Требует решения" tone="red" trend={usingSnapshotFeed ? 'сохранённый срез' : 'ML API'} />
+        <Metric icon={Siren} label="Высокий риск" value={String(highCount)} note="Активных прогнозов" tone="orange" trend={usingSnapshotFeed ? 'сохранённый срез' : 'ML API'} />
         <Metric icon={ShieldCheck} label="Датчики онлайн" value={sensorCount ? `${Math.round(onlineSensorCount / sensorCount * 100)}%` : '—'} note={`${onlineSensorCount} из ${sensorCount} на схеме`} tone="green" trend="топология" />
       </div>
       <div className="dashboard-feature-grid">
         <section className="panel critical-intelligence" aria-label="Приоритетный прогноз">
-          <div className="critical-intelligence-top"><span className="eyebrow"><i className="critical-live-dot" /> Приоритет смены</span><span className="critical-source">{usingDemoFeed ? 'Прогноз модели' : 'ML API'}</span></div>
+          <div className="critical-intelligence-top"><span className="eyebrow"><i className="critical-live-dot" /> Приоритет смены</span><span className="critical-source">{usingSnapshotFeed ? 'Прогноз модели' : 'ML API'}</span></div>
           {recommendedPrediction ? <>
             <div className="critical-intelligence-score"><span className="critical-score-value">{recommendedPrediction.probability}<small>%</small></span><RiskBadge risk={recommendedPrediction.risk} /></div>
             <h3>{recommendedPrediction.object}</h3>
@@ -145,8 +145,8 @@ export function Dashboard({
             <h3>{connectionLabel(mlConnection)}</h3>
             <p>Проверка {lastMlSync} · {refreshInterval === 'manual' ? 'обновление вручную' : `обновление ленты каждые ${refreshInterval === '0.5' ? '30 секунд' : `${refreshInterval} мин`}`}</p>
           </div>
-          <StatusBadge tone={usingDemoFeed ? 'info' : 'success'}>
-            {usingDemoFeed ? 'Сохранённый срез' : 'Данные из ML API'}
+          <StatusBadge tone={usingSnapshotFeed ? 'info' : 'success'}>
+            {usingSnapshotFeed ? 'Сохранённый срез' : 'Данные из ML API'}
           </StatusBadge>
         </div>
         <div className="system-overview-models">
@@ -163,7 +163,7 @@ export function Dashboard({
           ) : <EmptyState title={mlConnection === 'unconfigured' ? 'Нет подключения к API' : 'Реестр моделей недоступен'} description={mlConnection === 'unconfigured' ? 'Показываем сохранённый срез. Результаты API появятся после подключения сервиса.' : 'Интерфейс сохраняет карточки последнего успешного ответа или сохранённый срез.'} />}
         </div>
         <div className="system-overview-footer">
-          <span>{usingDemoFeed ? 'Показан сохранённый срез прогнозов' : `Активных прогнозов: ${activePredictions.length}`}</span>
+          <span>{usingSnapshotFeed ? 'Показан сохранённый срез прогнозов' : `Активных прогнозов: ${activePredictions.length}`}</span>
           <span>Датчики на схеме: {onlineSensorCount} / {sensorCount} онлайн</span>
         </div>
         </div>
@@ -184,7 +184,7 @@ export function Dashboard({
         predictions={dashboardPredictions}
         events={eventItems}
         recommendedPrediction={recommendedPrediction}
-        usingDemoFeed={usingDemoFeed}
+        usingSnapshotFeed={usingSnapshotFeed}
         onlineSensorCount={onlineSensorCount}
         sensorCount={sensorCount}
       />
@@ -199,7 +199,7 @@ export function DashboardSupport({
   predictions: dashboardPredictions,
   events: eventItems,
   recommendedPrediction,
-  usingDemoFeed,
+  usingSnapshotFeed,
   onlineSensorCount,
   sensorCount,
 }: {
@@ -208,13 +208,13 @@ export function DashboardSupport({
   predictions: PredictionRecord[];
   events: JournalEntry[];
   recommendedPrediction?: PredictionRecord;
-  usingDemoFeed: boolean;
+  usingSnapshotFeed: boolean;
   onlineSensorCount: number;
   sensorCount: number;
 }) {
   return (
     <div className="dashboard-support-grid">
-      <SectionCard title="Последние события" description={usingDemoFeed ? 'Срез активных сигналов' : 'События из подключённого контура'} className="dashboard-events-card">
+      <SectionCard title="Последние события" description={usingSnapshotFeed ? 'Срез активных сигналов' : 'События из подключённого контура'} className="dashboard-events-card">
         <div className="dashboard-event-list">
           {eventItems.length > 0 ? eventItems.map((event) => (
             <div className="dashboard-event" key={event.predictionId}>
@@ -250,7 +250,7 @@ export function DashboardSupport({
           <div><span>Датчики на схеме</span><strong>{onlineSensorCount} <small>/ {sensorCount}</small></strong></div>
           <div className="sensor-availability"><i style={{ width: `${sensorCount ? Math.round(onlineSensorCount / sensorCount * 100) : 0}%` }} /></div>
           <div className="infrastructure-breakdown"><span><i className="source-ok" /> Связь стабильна <strong>{mapObjects.filter((object) => (user.district === 'Все округа' || object.district === user.district) && object.connection === 'Онлайн').length}</strong></span><span><i className="source-wait" /> Требуют проверки <strong>{mapObjects.filter((object) => (user.district === 'Все округа' || object.district === user.district) && object.connection !== 'Онлайн').length}</strong></span></div>
-          <small className="demo-caption">Показатели рассчитаны по схеме объектов и не заменяют производственную телеметрию.</small>
+          <small className="context-caption">Показатели рассчитаны по схеме объектов и не заменяют производственную телеметрию.</small>
         </div>
       </SectionCard>
     </div>

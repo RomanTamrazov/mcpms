@@ -56,7 +56,7 @@ export function AdminPanel({
         if (typeof settings.criticalNotifications === 'boolean') setCriticalNotifications(settings.criticalNotifications);
       }
     } catch {
-      // Keep default demo settings when browser storage is unavailable.
+      // Keep default settings when browser storage is unavailable.
     }
   }, []);
 

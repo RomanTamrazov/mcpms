@@ -43,7 +43,7 @@ export default function MoscollectorApp() {
   const [refreshInterval, setRefreshInterval] = useState('0.5');
   const [criticalNotifications, setCriticalNotifications] = useState(true);
   const activePredictions = liveFeed.items.length > 0 ? liveFeed.items : predictions;
-  const usingDemoFeed = liveFeed.items.length === 0;
+  const usingSnapshotFeed = liveFeed.items.length === 0;
 
   useEffect(() => {
     try { setSidebarCollapsed(window.localStorage.getItem('moscollector-sidebar-collapsed') === 'true'); }
@@ -62,7 +62,7 @@ export default function MoscollectorApp() {
       const settings = JSON.parse(stored) as { refreshInterval?: string; criticalNotifications?: boolean };
       if (['0.5', '1', '5', '15', 'manual'].includes(settings.refreshInterval || '')) setRefreshInterval(settings.refreshInterval!);
       if (typeof settings.criticalNotifications === 'boolean') setCriticalNotifications(settings.criticalNotifications);
-    } catch { /* Keep default demo preferences. */ }
+    } catch { /* Keep default preferences. */ }
   }, []);
 
   useEffect(() => {
@@ -217,7 +217,7 @@ export default function MoscollectorApp() {
       id: item.id,
       title: `${item.risk} риск · ${item.object}`,
       description: `${item.type} · ${riskScoreLabel(item)} ${item.probability}% · ${item.horizon}`,
-      source: usingDemoFeed ? 'Прогноз модели' : 'ML-прогноз',
+      source: usingSnapshotFeed ? 'Прогноз модели' : 'ML-прогноз',
       time: item.time,
       tone: item.risk === 'Критический' ? 'danger' as const : 'warning' as const,
     }));
@@ -253,8 +253,8 @@ export default function MoscollectorApp() {
           if (user.role === 'manager') {
             window.history.pushState({}, '', deploymentPath('/admin/'));
           } else {
-            const pendingPath = window.sessionStorage.getItem('moscollector-demo-next');
-            if (pendingPath) window.sessionStorage.removeItem('moscollector-demo-next');
+            const pendingPath = window.sessionStorage.getItem('moscollector-next-route');
+            if (pendingPath) window.sessionStorage.removeItem('moscollector-next-route');
             const requested = parseAppPath(pendingPath || window.location.pathname, deploymentBasePath);
             const allowed = requested.kind === 'section' && roleSections[user.role].includes(requested.section);
             go(allowed ? requested.section : 'dashboard', allowed ? requested.detail || undefined : undefined);
@@ -379,7 +379,7 @@ export default function MoscollectorApp() {
               notify={notify}
               user={currentUser}
               activePredictions={activePredictions}
-              usingDemoFeed={usingDemoFeed}
+              usingSnapshotFeed={usingSnapshotFeed}
               mlConnection={mlConnection}
               mlHealth={mlHealth}
               mlFeedError={mlFeedError}
@@ -400,7 +400,7 @@ export default function MoscollectorApp() {
                 liveContexts={liveFeed.contexts}
               />
             ) : (
-              <Predictions go={go} notify={notify} user={currentUser} activePredictions={activePredictions} usingDemoFeed={usingDemoFeed} />
+              <Predictions go={go} notify={notify} user={currentUser} activePredictions={activePredictions} usingSnapshotFeed={usingSnapshotFeed} />
             ))}
           {section === 'incidents' && <Incidents notify={notify} />}
           {section === 'equipment' &&
@@ -409,7 +409,7 @@ export default function MoscollectorApp() {
             ) : (
               <EquipmentPage go={go} notify={notify} />
             ))}
-          {section === 'maintenance' && <Maintenance notify={notify} user={currentUser} openRequestId={detail} onSwitchRole={(next) => { window.sessionStorage.setItem('moscollector-demo-next', next === 'analytics' ? '/analytics/' : sectionPath('maintenance', detail)); setCurrentUser(null); storeCurrentUser(null); window.history.pushState({}, '', deploymentPath('/login/')); }} />}
+          {section === 'maintenance' && <Maintenance notify={notify} user={currentUser} openRequestId={detail} onSwitchRole={(next) => { window.sessionStorage.setItem('moscollector-next-route', next === 'analytics' ? '/analytics/' : sectionPath('maintenance', detail)); setCurrentUser(null); storeCurrentUser(null); window.history.pushState({}, '', deploymentPath('/login/')); }} />}
           {section === 'schedule' && <MaintenancePlan />}
           {section === 'analytics' && <Analytics notify={notify} go={go} />}
         </div>

@@ -176,7 +176,7 @@ export default function InteractiveMap({
         </div>
         <span><i className="sensor-symbol" /> датчик</span>
         <span><b className="junction-symbol">У</b> узел сопряжения</span>
-        <span className="demo-badge">Топология объектов</span>
+        <span className="topology-badge">Топология объектов</span>
       </div>
     </div>
   );

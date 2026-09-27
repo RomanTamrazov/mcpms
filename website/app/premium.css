@@ -170,7 +170,7 @@ button:disabled { cursor: not-allowed; opacity: .52; }
 kbd { border-color: var(--border); border-radius: 4px; background: var(--surface-muted); color: var(--muted); box-shadow: none; }
 .topbar-system-status { border: 0; background: transparent; color: var(--muted); font-size: 11px; }
 .topbar-system-status .system-dot { box-shadow: none; }
-.topbar-system-status .system-dot.demo { background: var(--muted); }
+.topbar-system-status .system-dot.snapshot { background: var(--muted); }
 .shift-badge { min-height: 28px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 11px; font-weight: 500; line-height: 1; letter-spacing: 0; text-transform: none; }
 .shift-badge i { box-shadow: none; }
 .icon-btn { width: 34px; height: 34px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--muted); box-shadow: none; }
@@ -317,7 +317,7 @@ tbody tr:last-child td { border-bottom: 0; }
 .infrastructure-summary { padding: 15px; }
 .infrastructure-summary > div:first-child, .infrastructure-breakdown span { font-size: 11px; }
 .infrastructure-summary > div:first-child strong { font-size: 20px; }
-.demo-caption { font-size: 10px; }
+.context-caption { font-size: 10px; }
 
 /* Tables, charts, forecast inspector and actions. */
 .filters, .table-tools { gap: 8px; margin-bottom: 13px; }
@@ -387,13 +387,13 @@ tbody tr:last-child td { border-bottom: 0; }
 .request-details, .job-details, .sent-meta, .archive-row, .archive-response, .request-history { border-color: var(--border); border-radius: var(--radius-sm); background: var(--surface-soft); }
 .import-status, .import-preview { border-color: var(--border); background: var(--surface); }
 .admin-message, .login-message { border-color: var(--border); background: var(--surface-soft); color: var(--text); }
-.demo-outcome-card .panel-head { border-bottom-color: var(--border); }
-.demo-outcome-grid { gap: 0; padding: 0 16px; }
-.demo-outcome-grid > div { padding: 14px; border: 0; border-right: 1px solid var(--border); border-radius: 0; background: transparent; }
-.demo-outcome-grid > div:last-child { border-right: 0; }
-.demo-outcome-grid span { color: var(--muted); font-size: 11px; }
-.demo-outcome-grid strong { color: var(--text); font-size: 21px; }
-.demo-outcome-latest { border-top: 1px solid var(--border); background: transparent; }
+.shift-outcome-card .panel-head { border-bottom-color: var(--border); }
+.shift-outcome-grid { gap: 0; padding: 0 16px; }
+.shift-outcome-grid > div { padding: 14px; border: 0; border-right: 1px solid var(--border); border-radius: 0; background: transparent; }
+.shift-outcome-grid > div:last-child { border-right: 0; }
+.shift-outcome-grid span { color: var(--muted); font-size: 11px; }
+.shift-outcome-grid strong { color: var(--text); font-size: 21px; }
+.shift-outcome-latest { border-top: 1px solid var(--border); background: transparent; }
 .efficiency i { background: var(--surface-muted); }
 .efficiency b { background: var(--primary); }
 .risk-legend i { box-shadow: none; }
@@ -467,10 +467,10 @@ tbody tr:last-child td { border-bottom: 0; }
 .login-card h2 { margin: 0 0 9px; font-size: 25px; letter-spacing: -.04em; }
 .login-card > p:not(.eyebrow) { color: var(--muted); font-size: 12px; line-height: 1.55; }
 .login-card > label span { color: var(--text); font-size: 11px; }
-.demo-login-list { display: flex; flex-wrap: wrap; gap: 7px; margin: 16px 0 14px; padding: 12px; border-color: var(--border); background: var(--surface-soft); }
-.demo-login-list > span { flex: 0 0 100%; margin: 0 0 2px; }
-.demo-login-list button { min-height: 34px; margin: 0; padding: 7px 10px; border-color: var(--border); border-radius: 6px; background: var(--surface); color: var(--muted); }
-.demo-login-list button:hover { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+.role-login-list { display: flex; flex-wrap: wrap; gap: 7px; margin: 16px 0 14px; padding: 12px; border-color: var(--border); background: var(--surface-soft); }
+.role-login-list > span { flex: 0 0 100%; margin: 0 0 2px; }
+.role-login-list button { min-height: 34px; margin: 0; padding: 7px 10px; border-color: var(--border); border-radius: 6px; background: var(--surface); color: var(--muted); }
+.role-login-list button:hover { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
 .login-help { align-items: flex-start; margin-top: 14px; border-color: var(--border); border-radius: var(--radius-sm); background: var(--surface-soft); }
 
 @media (max-width: 600px) {
@@ -478,7 +478,7 @@ tbody tr:last-child td { border-bottom: 0; }
   .login-card { width: 100%; padding: 22px 18px; }
   .login-mobile-brand { margin-bottom: 26px; }
   .login-options { align-items: flex-start; flex-direction: column; gap: 8px; }
-  .demo-login-list button { flex: 1 1 100%; text-align: left; }
+  .role-login-list button { flex: 1 1 100%; text-align: left; }
 }
 
 @media (min-width: 1051px) {
@@ -542,10 +542,10 @@ tbody tr:last-child td { border-bottom: 0; }
   .metric-copy strong, .metric:first-child .metric-copy strong { font-size: 23px; }
   .panel-head { min-height: 57px; padding: 13px 14px; }
   .risk-list, .dashboard-event-list { padding-right: 12px; padding-left: 12px; }
-  .demo-outcome-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .demo-outcome-grid > div { padding: 12px 8px; }
-  .demo-outcome-grid span { font-size: 10px; }
-  .demo-outcome-grid strong { font-size: 17px; }
+  .shift-outcome-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .shift-outcome-grid > div { padding: 12px 8px; }
+  .shift-outcome-grid span { font-size: 10px; }
+  .shift-outcome-grid strong { font-size: 17px; }
 }
 @media (max-width: 560px) {
   .topbar { height: 56px; padding: 0 11px; }
@@ -573,9 +573,9 @@ tbody tr:last-child td { border-bottom: 0; }
   .metric-copy strong, .metric:first-child .metric-copy strong { font-size: 22px; }
   .metric-copy small, .metric-trend { font-size: 9px; }
   .system-overview-footer { font-size: 10px; }
-  .demo-outcome-grid { grid-template-columns: 1fr; }
-  .demo-outcome-grid > div { padding: 10px 0; border-right: 0; border-bottom: 1px solid var(--border); }
-  .demo-outcome-grid > div:last-child { border-bottom: 0; }
+  .shift-outcome-grid { grid-template-columns: 1fr; }
+  .shift-outcome-grid > div { padding: 10px 0; border-right: 0; border-bottom: 1px solid var(--border); }
+  .shift-outcome-grid > div:last-child { border-bottom: 0; }
   .map-view-toolbar { align-items: flex-start; }
   .notification-overlay { padding: 0; }
   .notification-center { max-height: 100dvh; border-radius: 0; }

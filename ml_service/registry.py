@@ -56,7 +56,6 @@ class ModelRegistry:
                 "Несанкционированный доступ",
                 UnauthorizedAccessAdapter,
             ),
-            "model_4": RegisteredModel("model_4", "Модель 4", None),
         }
         for model in self.models.values():
             model.load()

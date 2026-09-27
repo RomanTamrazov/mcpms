@@ -79,7 +79,7 @@ export function Login({
           </div>
           <p className="eyebrow">Рабочий доступ</p>
           <h2>Вход в систему</h2>
-          <p>Роли в конкурсной версии работают локально в браузере. Для промышленного доступа требуется интеграция с LDAP/AD.</p>
+          <p>В MVP роли работают локально в браузере. Для промышленного доступа требуется интеграция с LDAP/AD.</p>
           <label>
             <span>Рабочая почта</span>
             <input
@@ -110,7 +110,7 @@ export function Login({
             </div>
           )}
           {error && <div className="login-error">{error}</div>}
-          <div className="demo-login-list">
+          <div className="role-login-list">
             <span>Роли доступа</span>
             {[
               ['Диспетчер', defaultDispatcherAccounts[0]],

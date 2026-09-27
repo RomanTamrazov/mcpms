@@ -128,7 +128,7 @@ export function loadDispatcherAccounts() {
     if (window.localStorage.getItem(accountsStorageVersionKey) !== '4') {
       const migrated = [
         ...normalized,
-        ...defaultDispatcherAccounts.filter((demo) => !normalized.some((account) => account.email.toLowerCase() === demo.email.toLowerCase())),
+        ...defaultDispatcherAccounts.filter((defaultAccount) => !normalized.some((account) => account.email.toLowerCase() === defaultAccount.email.toLowerCase())),
       ];
       window.localStorage.setItem(accountsStorageKey, JSON.stringify(migrated));
       window.localStorage.setItem(accountsStorageVersionKey, '4');
@@ -153,7 +153,7 @@ export function storeDispatcherAccounts(accounts: UserAccount[]) {
 
 
 
-// Demo RBAC is browser-local. Production access requires a backend identity provider (LDAP/AD).
+// Browser-local role control. Production access requires a backend identity provider (LDAP/AD).
 export function storeCurrentUser(user: UserAccount | null) {
   try {
     if (user) window.localStorage.setItem(sessionStorageKey, user.id);
@@ -818,7 +818,7 @@ export const predictionContexts: Record<string, {
 
 
 export const defaultPredictionContext = {
-  system: 'Инженерная система', objectId: 'OBJ-DEMO', picket: 'ПК 80', modelVersion: 'Модель прогнозирования',
+  system: 'Инженерная система', objectId: 'OBJ-001', picket: 'ПК 80', modelVersion: 'Модель прогнозирования',
   sources: ['СМВУ', 'Реестр оборудования'],
   factors: [
     { label: 'Отклонение показаний', value: '+18%', impact: 46, note: 'устойчиво на нескольких интервалах' },

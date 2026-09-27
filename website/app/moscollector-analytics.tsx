@@ -67,9 +67,9 @@ export function Analytics({ notify, go }: { notify: (s: string) => void; go: (s:
           </div>
         }
       />
-      <SectionCard title="Итоги текущей смены" description="Действия, сохранённые в этом браузере" className="demo-outcome-card" action={<button className="secondary-btn" onClick={() => go('incidents')}>Открыть журнал</button>}>
-        <div className="demo-outcome-grid"><div><span>Решений в журнале</span><strong>{sessionJournal.length}</strong></div><div><span>Создано заявок</span><strong>{sessionRequests.length + sessionArchive.length}</strong></div><div><span>Завершено / отклонено</span><strong>{sessionArchive.length}</strong></div></div>
-        {latestSessionRequest ? <div className="demo-outcome-latest"><span>Последняя заявка</span><strong>{latestSessionRequest.requestId} · {latestSessionRequest.object}</strong><small>Статус: {latestSessionRequest.status}</small><button className="secondary-btn" onClick={() => go('maintenance', latestSessionRequest.requestId)}>Открыть заявку <ChevronRight size={16} /></button></div> : <EmptyState title="Сценарий ещё не начат" description="Откройте критический прогноз и оформите решение диспетчера: результат появится здесь." action={<button className="secondary-btn" onClick={() => go('predictions')}>К прогнозам</button>} />}
+      <SectionCard title="Итоги текущей смены" description="Действия, сохранённые в этом браузере" className="shift-outcome-card" action={<button className="secondary-btn" onClick={() => go('incidents')}>Открыть журнал</button>}>
+        <div className="shift-outcome-grid"><div><span>Решений в журнале</span><strong>{sessionJournal.length}</strong></div><div><span>Создано заявок</span><strong>{sessionRequests.length + sessionArchive.length}</strong></div><div><span>Завершено / отклонено</span><strong>{sessionArchive.length}</strong></div></div>
+        {latestSessionRequest ? <div className="shift-outcome-latest"><span>Последняя заявка</span><strong>{latestSessionRequest.requestId} · {latestSessionRequest.object}</strong><small>Статус: {latestSessionRequest.status}</small><button className="secondary-btn" onClick={() => go('maintenance', latestSessionRequest.requestId)}>Открыть заявку <ChevronRight size={16} /></button></div> : <EmptyState title="Нет действий в текущей смене" description="Откройте критический прогноз и оформите решение диспетчера: результат появится здесь." action={<button className="secondary-btn" onClick={() => go('predictions')}>К прогнозам</button>} />}
       </SectionCard>
       <div className="metric-grid four">
         <Metric
