@@ -130,8 +130,7 @@ curl -X POST http://localhost:8000/api/v1/models/fire_risk/predict \
 Полные `meta` и `features` приведены в `example_input.json`. Файл
 `example_alert_input.json` — строка из временного тестового периода с оценкой
 выше рабочего порога, предназначенная для проверки интеграции. Список и
-состояние трёх подключённых моделей и одного резервного слота доступны через
-`GET /api/v1/models`.
+состояние трёх подключённых моделей доступны через `GET /api/v1/models`.
 
 ## Роли доступа
 
@@ -175,44 +174,6 @@ curl -X POST http://localhost:8000/api/v1/models/fire_risk/predict \
 хранятся в `localStorage` браузера. ML-прогнозы появляются при доступности API;
 при её отсутствии интерфейс показывает сохранённый срез.
 
-## Публикация в GitHub
+---
 
-Репозиторий уже содержит `.gitignore`, `.gitattributes` и workflow GitHub
-Pages. Для нового публичного репозитория через GitHub CLI:
-
-```bash
-cd "/Users/roman/VScode/hft/mcpms-main"
-git init
-git branch -M main
-git add .
-git commit -m "Prepare MosCollector ML platform"
-gh auth login
-gh repo create mcpms --public --source=. --remote=origin --push
-```
-
-Если пустой репозиторий уже создан на GitHub:
-
-```bash
-cd "/Users/roman/VScode/hft/mcpms-main"
-git init
-git branch -M main
-git add .
-git commit -m "Prepare MosCollector ML platform"
-git remote add origin https://github.com/USERNAME/REPOSITORY.git
-git push -u origin main
-```
-
-### GitHub Pages
-
-Каждый push в `main` собирает и публикует статическую версию MVP:
-
-`https://USERNAME.github.io/REPOSITORY/`
-
-Путь публикации определяется из имени репозитория автоматически. GitHub Pages
-размещает только статический frontend: Python ML API и модели на Pages не
-запускаются. Для карточек реальных прогнозов API нужно развернуть отдельно и
-при сборке frontend задать `VITE_ML_API_URL`. Аккаунты, журнал и заявки в
-статической версии сохраняются в браузере. Для общего многопользовательского
-контура нужны backend, PostgreSQL и корпоративная аутентификация.
-
-Контракт для подключения backend и ML-команды описан в [website/ML_API_CONTRACT.md](website/ML_API_CONTRACT.md).
+Made by Nam Ne DANO
