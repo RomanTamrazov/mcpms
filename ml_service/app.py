@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from registry import ModelRegistry
 from store import PredictionStore
-from telemetry_semantics import StateCatalog, normalize_sensor_value
+from telemetry_semantics import StateCatalog, normalize_sensor_value, triage_telemetry_event
 
 app = FastAPI(title="МосКоллектор ML API", version="1.0.0")
 origins = [
@@ -68,17 +68,29 @@ def list_models() -> dict[str, Any]:
 
 @app.post("/api/v1/telemetry/normalize")
 def normalize_telemetry(body: dict[str, Any]) -> dict[str, Any]:
-    """Classify one raw journal value without changing a model score."""
+    """Classify and route one raw journal value without changing a model score."""
 
     sensor_type = body.get("sensor_type")
     if not isinstance(sensor_type, str) or not sensor_type.strip():
         raise HTTPException(status_code=422, detail="sensor_type is required")
     if "value" not in body:
         raise HTTPException(status_code=422, detail="value is required")
-    normalized = normalize_sensor_value(sensor_type, body["value"], state_catalog)
+    raw_alarm = body.get("alarm_message", body.get("тревожное"))
+    try:
+        normalized = normalize_sensor_value(sensor_type, body["value"], state_catalog)
+        triage = triage_telemetry_event(
+            sensor_type,
+            body["value"],
+            state_catalog,
+            alarm_message=raw_alarm,
+            channel_name=body.get("channel_name"),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     return {
         "sensor_type": sensor_type,
         "normalized": asdict(normalized),
+        "triage": asdict(triage),
         "methane_reference_flammability_percent": [5.0, 15.0]
         if sensor_type == "Газовый датчик"
         else None,

@@ -32,6 +32,24 @@ TECHNICAL_STATES = frozenset(
     }
 )
 
+# A journal alarm is a signal that needs verification, not a dispatcher-confirmed
+# incident. The groups below are the organiser's operational taxonomy.
+EMERGENCY_GROUPS = frozenset({"fire", "flood", "gas", "intrusion", "temperature"})
+CHANNEL_TERMS = {
+    "РО": "рабочее освещение",
+    "АО": "аварийное освещение",
+    "ФРО": "фидер рабочего освещения",
+    "ФАО": "фидер аварийного освещения",
+    "ГРО": "группа рабочего освещения",
+    "ФВ": "фидер вентиляции",
+    "В23": "вентилятор",
+    "ФАНС": "фидер автоматической насосной станции",
+    "ОЗК": "огнезадерживающий клапан",
+    "ЩАП": "щит аварийного питания с АВР",
+    "ФТС": "фидер теплосети",
+    "ПУИ": "пульт управления и индикации",
+}
+
 
 @dataclass(frozen=True)
 class StateResolution:
@@ -108,6 +126,31 @@ class NormalizedValue:
     threshold: float | None = None
     catalog_expected_alarm: bool | None = None
     catalog_state_set_ids: tuple[int, ...] = ()
+
+
+@dataclass(frozen=True)
+class ChannelContext:
+    """Explain published channel-name abbreviations without inventing topology."""
+
+    channel_name: str
+    terms: tuple[str, ...] = ()
+    supplied_load: str | None = None
+    picket: int | None = None
+    supply_source: str | None = None
+
+
+@dataclass(frozen=True)
+class EventTriage:
+    """Operational routing for one message; never confirms an incident."""
+
+    alarm_message: bool | None
+    catalog_alarm_message: bool | None
+    source_conflict: bool
+    classification: str
+    emergency_group: str | None
+    requires_dispatcher_verification: bool
+    incident_status: str
+    channel_context: ChannelContext | None = None
 
 
 def _parse_number(raw_value: str) -> float | None:
@@ -195,6 +238,122 @@ def normalize_sensor_value(
     return NormalizedValue(raw, "state", "unknown", "unmapped_text_state")
 
 
+def _normalize_alarm_message(value: object | None) -> bool | None:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    raise ValueError("alarm_message must be boolean when provided")
+
+
+def interpret_channel_name(channel_name: object | None) -> ChannelContext | None:
+    """Extract only the organiser-confirmed meaning of a channel name.
+
+    A parenthesised value identifies what a feeder powers. The source feeding
+    that feeder is explicitly unavailable in the supplied data, and picket
+    spacing is not inferred because it can differ by collector.
+    """
+
+    if channel_name is None or not str(channel_name).strip():
+        return None
+    raw = str(channel_name).strip()
+    terms: list[str] = []
+    upper = raw.upper()
+    for abbreviation, meaning in CHANNEL_TERMS.items():
+        if re.search(rf"(?<![А-ЯA-Z0-9]){re.escape(abbreviation)}(?:\d+)?(?![А-ЯA-Z])", upper):
+            terms.append(f"{abbreviation}: {meaning}")
+    if "МЕЖСЕКЦИОН" in upper:
+        terms.append("Межсекционный: секционный автомат между вводами")
+    parenthetical = re.search(r"\(([^()]+)\)", raw)
+    picket = re.search(r"\bПК\s*(\d+)\b", upper)
+    return ChannelContext(
+        channel_name=raw,
+        terms=tuple(terms),
+        supplied_load=parenthetical.group(1).strip() if parenthetical else None,
+        picket=int(picket.group(1)) if picket else None,
+        supply_source="not_specified_in_source",
+    )
+
+
+def _emergency_group(sensor_type: str, normalized: NormalizedValue) -> str | None:
+    sensor = sensor_type.casefold()
+    state = normalized.raw_value.casefold()
+
+    if normalized.numeric_value is not None and sensor_type == GAS_SENSOR_TYPE:
+        return "gas" if normalized.numeric_value >= METHANE_ALERT_PERCENT else None
+    if state == "обнаружен газ":
+        return "gas"
+    if state == "обнаружен дым" or "рычаг сдернут" in state:
+        return "fire"
+    if state == "не замкнут" and ("теплов" in sensor or "ручн" in sensor):
+        return "fire"
+    if state == "затоплен" and ("насос" in sensor or "насосн" in sensor):
+        return "flood"
+    if state == "не замкнут" and "затоплен" in sensor:
+        return "flood"
+    if (
+        state in {"обнаружено движение", "движение вверх", "движение вниз", "движение влево", "движение вправо"}
+        or (state == "не замкнут" and any(token in sensor for token in ("двер", "люк", "движ", "ав")))
+    ):
+        return "intrusion"
+    if state.startswith("температура выше") or state.startswith("температура ниже"):
+        return "temperature"
+    return None
+
+
+def triage_telemetry_event(
+    sensor_type: str,
+    raw_value: object,
+    state_catalog: StateCatalog | None = None,
+    *,
+    alarm_message: object | None = None,
+    channel_name: object | None = None,
+) -> EventTriage:
+    """Route a journal message without claiming it is a confirmed incident.
+
+    ``alarm_message`` is the source ``тревожное`` flag when present. It takes
+    precedence over a catalogue-derived value, while any disagreement remains
+    visible as ``source_conflict`` for a dispatcher to check.
+    """
+
+    source_alarm = _normalize_alarm_message(alarm_message)
+    normalized = normalize_sensor_value(sensor_type, raw_value, state_catalog)
+    inferred_alarm = normalized.catalog_expected_alarm
+    if inferred_alarm is None and normalized.numeric_value is not None and sensor_type == GAS_SENSOR_TYPE:
+        inferred_alarm = normalized.numeric_value >= METHANE_ALERT_PERCENT
+    source_conflict = (
+        source_alarm is not None
+        and inferred_alarm is not None
+        and source_alarm != inferred_alarm
+    )
+    effective_alarm = source_alarm if source_alarm is not None else inferred_alarm
+    group = _emergency_group(sensor_type, normalized)
+    technical = normalized.kind == "fault" or normalized.reason == "technical_state"
+
+    if source_conflict:
+        classification = "requires_verification"
+    elif group in EMERGENCY_GROUPS and effective_alarm is not False:
+        classification = "emergency_signal"
+    elif technical:
+        classification = "technical_signal"
+    elif effective_alarm:
+        classification = "alarm_message"
+    else:
+        classification = "normal"
+
+    needs_check = classification != "normal"
+    return EventTriage(
+        alarm_message=effective_alarm,
+        catalog_alarm_message=normalized.catalog_expected_alarm,
+        source_conflict=source_conflict,
+        classification=classification,
+        emergency_group=group,
+        requires_dispatcher_verification=needs_check,
+        incident_status="not_confirmed" if needs_check else "not_applicable",
+        channel_context=interpret_channel_name(channel_name),
+    )
+
+
 def main() -> None:
     import argparse
 
@@ -205,7 +364,14 @@ def main() -> None:
     args = parser.parse_args()
     catalog = StateCatalog.from_csv(args.state_catalog)
     result = normalize_sensor_value(args.sensor_type, args.value, catalog)
-    print(json.dumps({"catalog": catalog.audit(), "value": asdict(result)}, ensure_ascii=False, indent=2))
+    triage = triage_telemetry_event(args.sensor_type, args.value, catalog)
+    print(
+        json.dumps(
+            {"catalog": catalog.audit(), "value": asdict(result), "triage": asdict(triage)},
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":
