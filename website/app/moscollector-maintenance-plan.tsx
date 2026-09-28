@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { CalendarDays, ClipboardList, Info, Wrench } from 'lucide-react';
 import { PageHead } from './moscollector-layout';
 import { equipmentPlanSummary, maintenanceByMonth, pprSchedule } from './maintenance-plan-data';
+import { Select } from '@/components/ui/select';
 
 type PlanTab = 'ppr' | 'to';
 
@@ -37,7 +38,7 @@ export function MaintenancePlan() {
             <article><span>Датчики метана</span><strong>{totalSensors.toLocaleString('ru-RU')}</strong><small>планово охвачены ППР</small></article>
             <article><span>Полные интервалы</span><strong>{visiblePpr.filter((item) => item.demount && item.removal && item.acceptance).length}</strong><small>демонтаж → вывоз → приёмка</small></article>
           </div>
-          <div className="plan-filter"><label htmlFor="ppr-month">Месяц проведения ППР</label><select id="ppr-month" value={month} onChange={(event) => setMonth(event.target.value)}>{months.map((item) => <option value={item} key={item}>{item}</option>)}</select>{month !== 'Все' && <button type="button" className="secondary-btn" onClick={() => setMonth('Все')}>Сбросить фильтр</button>}</div>
+          <div className="plan-filter"><label htmlFor="ppr-month">Месяц проведения ППР</label><Select id="ppr-month" value={month} onChange={(event) => setMonth(event.target.value)}>{months.map((item) => <option value={item} key={item}>{item}</option>)}</Select>{month !== 'Все' && <button type="button" className="secondary-btn" onClick={() => setMonth('Все')}>Сбросить фильтр</button>}</div>
           <section className="panel plan-table-panel">
             <header className="panel-head"><div><h3>План-график ППР аппаратуры контроля метана</h3><p>Источник: «График ППР АКМ на 2026 г. РЭК»</p></div><span className="plan-badge">План 2026</span></header>
             <div className="table-scroll"><table className="plan-table"><thead><tr><th>Коллектор</th><th>Месяц</th><th>Датчики</th><th>Демонтаж</th><th>Передача на ППР</th><th>Вывоз</th><th>Приёмка</th></tr></thead><tbody>{visiblePpr.map((item) => <tr key={item.object}><td><strong>{item.object}</strong><small>Не сопоставлен с ML-объектом</small></td><td>{item.month}</td><td>{item.sensors}</td><td>{show(item.demount)}</td><td>{show(item.delivery)}</td><td>{show(item.removal)}</td><td>{show(item.acceptance)}</td></tr>)}</tbody></table></div>

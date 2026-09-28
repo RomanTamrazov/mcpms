@@ -1,11 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Activity, Bell, Check, LogOut, Pencil, Search, ShieldCheck, SlidersHorizontal, Trash2, UserPlus, Users } from 'lucide-react';
+import { Activity, Bell, Check, ChevronRight, LogOut, Menu, Pencil, Search, ShieldCheck, SlidersHorizontal, Trash2, UserPlus, Users } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/enterprise';
 import { type MlHealth } from '@/lib/ml-api';
 import { UserRole, UserAccount, roleLabels, managerAccount, loadDispatcherAccounts, storeDispatcherAccounts, MlConnectionState, connectionLabel } from './moscollector-core';
 import { ThemeToggle, PageHead } from './moscollector-layout';
 import { BrandIdentity } from './moscollector-brand';
+import { Select } from '@/components/ui/select';
 
 
 export function AdminPanel({
@@ -45,6 +46,8 @@ export function AdminPanel({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [refreshInterval, setRefreshInterval] = useState('0.5');
   const [criticalNotifications, setCriticalNotifications] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeNav, setActiveNav] = useState('admin-accounts');
 
   useEffect(() => {
     setAccounts(loadDispatcherAccounts());
@@ -56,7 +59,6 @@ export function AdminPanel({
         if (typeof settings.criticalNotifications === 'boolean') setCriticalNotifications(settings.criticalNotifications);
       }
     } catch {
-      // Keep default settings when browser storage is unavailable.
     }
   }, []);
 
@@ -143,33 +145,76 @@ export function AdminPanel({
     setMessage(`Аккаунт ${account.name} удалён`);
   };
 
+  const adminNav = [
+    { id: 'admin-accounts', label: 'Пользователи и доступ', icon: Users, target: '.admin-grid' },
+    { id: 'admin-integrations', label: 'Интеграции', icon: Activity, target: '.admin-config-grid' },
+    { id: 'admin-settings', label: 'Рабочие параметры', icon: SlidersHorizontal, target: '.settings-check' },
+    { id: 'admin-audit', label: 'Аудит действий', icon: ShieldCheck, target: '.audit-card' },
+  ];
+  const scrollToBlock = (id: string, target: string) => {
+    setActiveNav(id);
+    setMenuOpen(false);
+    if (id === 'admin-accounts') window.scrollTo({ top: 0, behavior: 'smooth' });
+    else document.querySelector(target)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
   return (
-    <div className="admin-shell">
-      <header className="admin-topbar">
+    <div className="app-shell admin-shell">
+      <aside className={`sidebar ${menuOpen ? 'sidebar-open' : ''}`}>
         <div className="brand">
           <BrandIdentity />
         </div>
-        <div className="admin-profile">
-          <button className="command-trigger" onClick={onOpenSearch} aria-label="Поиск по системе, Control или Command K">
-            <Search size={16} /><span>Поиск</span><kbd>⌘ K</kbd>
-          </button>
-          <StatusBadge tone={mlConnection === 'online' ? 'success' : mlConnection === 'degraded' || mlConnection === 'offline' ? 'warning' : 'neutral'} className="topbar-system-status">
-            <i className={`system-dot ${mlConnection}`} />{connectionLabel(mlConnection)}
-          </StatusBadge>
-          <button className="icon-btn notification" type="button" aria-label={`Открыть центр уведомлений, непрочитанных: ${notificationCount}`} aria-expanded={notificationsOpen} onClick={onToggleNotifications}>
-            <Bell size={18} />{notificationCount > 0 && <b>{notificationCount > 9 ? '9+' : notificationCount}</b>}
-          </button>
-          <ThemeToggle darkTheme={darkTheme} onToggle={onToggleTheme} />
+        <nav className="main-nav" aria-label="Навигация руководителя">
+          <span className="nav-caption">Управление</span>
+          {adminNav.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeNav === item.id;
+            return (
+              <button key={item.id} type="button" className={`nav-item ${isActive ? 'active' : ''}`} aria-current={isActive ? 'true' : undefined} title={item.label} onClick={() => scrollToBlock(item.id, item.target)}>
+                <Icon size={19} />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+        <button className="profile" type="button" onClick={onLogout} aria-label={`Выйти из аккаунта ${user.name}`} title="Выйти">
+          <span className="avatar">
+            {user.name
+              .split(' ')
+              .map((part) => part[0])
+              .join('')
+              .slice(0, 2)}
+          </span>
           <span>
             <strong>{user.name}</strong>
             <small>{roleLabels[user.role]}</small>
           </span>
-          <button className="secondary-btn" onClick={onLogout}>
-            <LogOut size={16} /> Выйти
+          <LogOut size={16} />
+        </button>
+      </aside>
+      <div className="main">
+        <header className="topbar">
+          <button className="icon-btn mobile-menu" type="button" aria-label={menuOpen ? 'Закрыть меню' : 'Открыть меню'} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>
+            <Menu size={20} />
           </button>
-        </div>
-      </header>
-      <main className="admin-content">
+          <div>
+            <p className="eyebrow topbar-breadcrumb"><span>МосКоллектор</span><ChevronRight size={12} /><span>Управление</span></p>
+            <h1>Пользователи и доступ</h1>
+          </div>
+          <div className="top-actions">
+            <button className="command-trigger" onClick={onOpenSearch} aria-label="Поиск по системе, Control или Command K">
+              <Search size={16} /><span>Поиск по системе</span><kbd>⌘ K</kbd>
+            </button>
+            <StatusBadge tone={mlConnection === 'online' ? 'success' : mlConnection === 'degraded' || mlConnection === 'offline' ? 'warning' : 'neutral'} className="topbar-system-status">
+              <i className={`system-dot ${mlConnection}`} />{connectionLabel(mlConnection)}
+            </StatusBadge>
+            <ThemeToggle darkTheme={darkTheme} onToggle={onToggleTheme} />
+            <button className="icon-btn notification" type="button" aria-label={`Открыть центр уведомлений, непрочитанных: ${notificationCount}`} aria-expanded={notificationsOpen} onClick={onToggleNotifications}>
+              <Bell size={19} />{notificationCount > 0 && <b>{notificationCount > 9 ? '9+' : notificationCount}</b>}
+            </button>
+          </div>
+        </header>
+      <main className="content">
         <PageHead
           title="Пользователи и доступ"
           subtitle="Роли, подразделения и области ответственности"
@@ -199,23 +244,23 @@ export function AdminPanel({
                 required
               />
             </label>
-            <label>
+            <label htmlFor="admin-role">
               <span>Роль</span>
-              <select value={role} onChange={(event) => setRole(event.target.value as UserRole)}>
+              <Select id="admin-role" value={role} onChange={(event) => setRole(event.target.value as UserRole)}>
                 <option value="dispatcher">Диспетчер ОДС или эксплуатационного подразделения</option>
                 <option value="technician">Технический персонал по обслуживанию коллекторов</option>
                 <option value="manager">Руководитель эксплуатационного подразделения</option>
-              </select>
+              </Select>
             </label>
             <label>
               <span>Подразделение</span>
               <input value={unit} onChange={(event) => setUnit(event.target.value)} required />
             </label>
-            <label>
+            <label htmlFor="admin-district">
               <span>Область доступа</span>
-              <select value={district} onChange={(event) => setDistrict(event.target.value)}>
+              <Select id="admin-district" value={district} onChange={(event) => setDistrict(event.target.value)}>
                 <option>Все округа</option><option>ЦАО</option><option>ЮАО</option><option>СВАО</option><option>ЮВАО</option><option>ЗАО</option>
-              </select>
+              </Select>
             </label>
             <label className="admin-active-check">
               <input type="checkbox" checked={active} onChange={(event) => setActive(event.target.checked)} />
@@ -332,7 +377,7 @@ export function AdminPanel({
               <span className="metric-icon purple"><SlidersHorizontal size={20} /></span>
               <div><h3>Рабочие параметры</h3><p>Локальные настройки этого браузера</p></div>
             </div>
-            <label><span>Обновление ленты ML API</span><select value={refreshInterval} onChange={(event) => setRefreshInterval(event.target.value)}><option value="0.5">Каждые 30 секунд</option><option value="1">Каждую минуту</option><option value="5">Каждые 5 минут</option><option value="15">Каждые 15 минут</option><option value="manual">Вручную</option></select></label>
+            <label htmlFor="admin-refresh-interval"><span>Обновление ленты ML API</span><Select id="admin-refresh-interval" value={refreshInterval} onChange={(event) => setRefreshInterval(event.target.value)}><option value="0.5">Каждые 30 секунд</option><option value="1">Каждую минуту</option><option value="5">Каждые 5 минут</option><option value="15">Каждые 15 минут</option><option value="manual">Вручную</option></Select></label>
             <label className="settings-check" htmlFor="claim-lock" aria-label="Блокировка обработки"><input id="claim-lock" type="checkbox" checked disabled readOnly /><span><strong>Блокировка обработки</strong><small>Включена в этом браузере. Для межпользовательской блокировки требуется backend.</small></span></label>
             <label className="settings-check" htmlFor="critical-notifications" aria-label="Критические уведомления"><input id="critical-notifications" type="checkbox" checked={criticalNotifications} onChange={(event) => setCriticalNotifications(event.target.checked)} /><span><strong>Критические уведомления</strong><small>Показывать уведомления внутри приложения</small></span></label>
             <button className="primary-btn" onClick={() => {
@@ -355,6 +400,8 @@ export function AdminPanel({
           </section>
         </div>
       </main>
+      </div>
+      {menuOpen && <button aria-label="Закрыть меню" className="menu-backdrop" onClick={() => setMenuOpen(false)} />}
     </div>
   );
 }

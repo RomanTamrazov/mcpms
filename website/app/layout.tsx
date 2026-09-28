@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: 'МосКоллектор — Предиктивный мониторинг',
   description:
     'Система мониторинга и прогнозирования инцидентов городской инженерной инфраструктуры Москвы',
+  icons: { icon: `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/favicon.png` },
 };
 
 export const viewport: Viewport = {

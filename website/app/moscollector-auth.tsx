@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { ChevronRight, ShieldCheck } from 'lucide-react';
+import { Check, ChevronRight, ShieldCheck } from 'lucide-react';
 import { UserAccount, managerAccount, defaultDispatcherAccounts, loadDispatcherAccounts } from './moscollector-core';
 import { ThemeToggle } from './moscollector-layout';
 import { BrandIdentity } from './moscollector-brand';
@@ -110,19 +110,31 @@ export function Login({
             </div>
           )}
           {error && <div className="login-error">{error}</div>}
-          <div className="role-login-list">
+          <div className="role-login-list" role="group" aria-label="Роли доступа">
             <span>Роли доступа</span>
-            {[
+            {([
               ['Диспетчер', defaultDispatcherAccounts[0]],
               ['Технический персонал', defaultDispatcherAccounts[2]],
               ['Руководитель', managerAccount],
-            ].map(([label, account]) => (
-              <button key={(account as UserAccount).id} type="button" onClick={() => {
-                setEmail((account as UserAccount).email);
-                setPassword((account as UserAccount).password);
-                setError('');
-              }}>{label as string}</button>
-            ))}
+            ] as const).map(([label, account]) => {
+              const selected = email.trim().toLowerCase() === account.email.toLowerCase();
+              return (
+                <button
+                  key={account.id}
+                  type="button"
+                  className={selected ? 'selected' : undefined}
+                  aria-pressed={selected}
+                  onClick={() => {
+                    setEmail(account.email);
+                    setPassword(account.password);
+                    setError('');
+                  }}
+                >
+                  {selected && <Check size={14} />}
+                  {label}
+                </button>
+              );
+            })}
           </div>
           <button className="primary-btn login-submit" disabled={loading}>
             {loading ? 'Проверяем данные…' : 'Войти в систему'}

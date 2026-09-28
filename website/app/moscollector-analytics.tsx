@@ -6,6 +6,7 @@ import { EmptyState, SectionCard } from '@/components/ui/enterprise';
 import { CartesianGrid, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { SentRequest, ArchivedRequest, loadSentRequests, loadArchivedRequests, JournalEntry, loadJournalEntries, analyticsMonths, downloadFile } from './moscollector-core';
 import { PageHead, Metric, PanelHead } from './moscollector-layout';
+import { Select } from '@/components/ui/select';
 
 
 export function Analytics({ notify, go }: { notify: (s: string) => void; go: (s: Section, id?: string) => void }) {
@@ -41,7 +42,7 @@ export function Analytics({ notify, go }: { notify: (s: string) => void; go: (s:
         subtitle={`Показатели модели · выбранный период: ${period}`}
         action={
           <div className="inline-actions">
-            <select
+            <Select
               className="select-btn"
               value={period}
               onChange={(e) => setPeriod(e.target.value)}
@@ -50,7 +51,7 @@ export function Analytics({ notify, go }: { notify: (s: string) => void; go: (s:
               <option>30 дней</option>
               <option>3 месяца</option>
               <option>6 месяцев</option>
-            </select>
+            </Select>
             <button
               className="secondary-btn"
               onClick={() => {
@@ -149,7 +150,7 @@ export function Analytics({ notify, go }: { notify: (s: string) => void; go: (s:
                   outerRadius={87}
                   paddingAngle={3}
                 />
-                <Tooltip />
+                <Tooltip formatter={(value, name) => [`${String(value)}%`, name]} />
               </PieChart>
             </ResponsiveContainer>
             <div className="donut-center">

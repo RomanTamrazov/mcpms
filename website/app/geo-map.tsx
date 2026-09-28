@@ -69,7 +69,7 @@ function ObjectMarker({
   object: MapObject;
   selected: boolean;
   onSelect: (id: string) => void;
-  onPrediction: (id: string) => void;
+  onPrediction?: (id: string) => void;
   onRequest: (id: string) => void;
 }) {
   const marker = useRef<LeafletCircleMarker | null>(null);
@@ -93,7 +93,7 @@ function ObjectMarker({
           <span>{object.system} · {riskNames[object.risk]} риск</span>
           <span>Оценка риска {object.probability}%</span>
           <div>
-            {object.predictionId && <button type="button" onClick={() => onPrediction(object.predictionId!)}>Прогноз</button>}
+            {object.predictionId && onPrediction && <button type="button" onClick={() => onPrediction(object.predictionId!)}>Прогноз</button>}
             <button type="button" onClick={() => onRequest(object.id)}>Заявка</button>
           </div>
         </div>
@@ -112,7 +112,7 @@ export default function GeoMap({
   objects: MapObject[];
   selectedId?: string;
   onSelect: (id: string) => void;
-  onPrediction: (id: string) => void;
+  onPrediction?: (id: string) => void;
   onRequest: (id: string) => void;
 }) {
   const [tilesUnavailable, setTilesUnavailable] = useState(false);

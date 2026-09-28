@@ -7,6 +7,7 @@ import { type MlPredictionFeed } from '@/lib/ml-api';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { UserAccount, PredictionRecord, predictions, SentRequest, loadSentRequests, storeSentRequests, journalStatus, journalFact, storeJournalEntry, equipment, mapObjects, sensorData, predictionContexts, defaultPredictionContext, riskClass, riskScoreLabel, downloadFile } from './moscollector-core';
 import { PageHead, PanelHead } from './moscollector-layout';
+import { Select } from '@/components/ui/select';
 
 
 export function Predictions({
@@ -67,12 +68,12 @@ export function Predictions({
           <Search size={17} />
           <input value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Объект, инцидент или ID" aria-label="Поиск прогнозов" />
         </label>
-        <select className="select-btn" value={riskFilter} onChange={(event) => { setRiskFilter(event.target.value); setPage(1); }} aria-label="Фильтр по уровню риска">
+        <Select className="select-btn" value={riskFilter} onChange={(event) => { setRiskFilter(event.target.value); setPage(1); }} aria-label="Фильтр по уровню риска">
           <option value="all">Все уровни риска</option><option>Критический</option><option>Высокий</option><option>Средний</option><option>Низкий</option>
-        </select>
-        <select className="select-btn" value={sortOrder} onChange={(event) => setSortOrder(event.target.value)} aria-label="Сортировка прогнозов">
+        </Select>
+        <Select className="select-btn" value={sortOrder} onChange={(event) => setSortOrder(event.target.value)} aria-label="Сортировка прогнозов">
           <option value="risk">Сначала высокий риск-скор</option><option value="probability-asc">Сначала низкий риск-скор</option><option value="name">По названию объекта</option>
-        </select>
+        </Select>
         <span className="filter-result-count">Найдено: {visiblePredictions.length}</span>
       </FilterBar>
       <div className="panel table-panel">
@@ -111,7 +112,7 @@ export function PredictionTable({
   onRow,
 }: {
   rows: PredictionRecord[];
-  onRow: (id: string) => void;
+  onRow?: (id: string) => void;
 }) {
   if (rows.length === 0) {
     return <DataTable empty={<EmptyState title="Прогнозы не найдены" description="Измените поисковый запрос или сбросьте фильтры." />} />;
@@ -126,23 +127,25 @@ export function PredictionTable({
             <th>Оценка риска</th>
             <th>Риск</th>
             <th>Горизонт</th>
-            <th scope="col" aria-label="Открыть прогноз" />
+            {onRow && <th scope="col" aria-label="Открыть прогноз" />}
           </tr>
         </thead>
         <tbody>
           {rows.map((p) => (
             <tr
               key={p.id}
-              tabIndex={0}
-              role="button"
-              aria-label={`Открыть прогноз: ${p.object}, ${p.type}`}
-              onClick={() => onRow(p.id)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
-                  onRow(p.id);
-                }
-              }}
+              {...(onRow ? {
+                tabIndex: 0,
+                role: 'button',
+                'aria-label': `Открыть прогноз: ${p.object}, ${p.type}`,
+                onClick: () => onRow(p.id),
+                onKeyDown: (event: React.KeyboardEvent<HTMLTableRowElement>) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    onRow(p.id);
+                  }
+                },
+              } : { className: 'row-static' })}
             >
               <td>
                 <strong>{p.object}</strong>
@@ -172,9 +175,11 @@ export function PredictionTable({
                 <strong>{p.horizon}</strong>
                 <small>{p.time}</small>
               </td>
-              <td>
-                <ChevronRight size={17} />
-              </td>
+              {onRow && (
+                <td>
+                  <ChevronRight size={17} />
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
@@ -240,7 +245,6 @@ export function PredictionDetail({
       setReasonCategory(savedDecision.reasonCategory || 'Другое');
       setSaved(true);
     } catch {
-      // Keep the prediction available if browser storage is disabled.
     }
   }, [p.id]);
   useEffect(() => {
@@ -252,7 +256,7 @@ export function PredictionDetail({
     }
   }, [p.id]);
   const claimPrediction = () => {
-    try { window.localStorage.setItem(`moscollector-claim-${p.id}`, dispatcher.name); } catch { /* Session state remains usable. */ }
+    try { window.localStorage.setItem(`moscollector-claim-${p.id}`, dispatcher.name); } catch {  }
     setClaimedBy(dispatcher.name);
     notify(`Прогноз ${p.id} принят в работу`);
   };
@@ -310,7 +314,6 @@ export function PredictionDetail({
         }),
       );
     } catch {
-      // The decision remains visible for the current session.
     }
     storeJournalEntry({
       predictionId: p.id,
@@ -399,7 +402,7 @@ export function PredictionDetail({
             <span className="claim-badge locked"><ShieldCheck size={15} />Обрабатывает {claimedBy}</span>
           ) : (
             <button className="claim-badge" onClick={() => {
-              try { window.localStorage.removeItem(`moscollector-claim-${p.id}`); } catch { /* keep current session usable */ }
+              try { window.localStorage.removeItem(`moscollector-claim-${p.id}`); } catch {  }
               setClaimedBy('');
               notify(`Прогноз ${p.id} освобождён`);
             }}><ShieldCheck size={15} />Вы обрабатываете · освободить</button>
@@ -592,7 +595,7 @@ export function PredictionDetail({
                 </button>
               ))}
             </div>
-            <select
+            <Select
               disabled={readOnly}
               className="decision-reason-select"
               value={reasonCategory}
@@ -606,7 +609,7 @@ export function PredictionDetail({
               <option>Неисправность датчика или линии</option>
               <option>Плановые работы на объекте</option>
               <option>Другое</option>
-            </select>
+            </Select>
             <textarea
               disabled={readOnly}
               value={reason}

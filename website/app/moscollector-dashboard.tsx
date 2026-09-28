@@ -5,7 +5,7 @@ import { Activity, AlertTriangle, ChevronRight, Map, RefreshCcw, ShieldCheck, Si
 import { EmptyState, ErrorState, LoadingSkeleton, ObjectPreview, RiskBadge, SectionCard, StatusBadge } from '@/components/ui/enterprise';
 import { type MlHealth } from '@/lib/ml-api';
 import { Area, AreaChart, CartesianGrid, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { UserAccount, roleLabels, PredictionRecord, MlConnectionState, JournalEntry, loadJournalEntries, mapObjects, trend, connectionLabel, riskScoreLabel } from './moscollector-core';
+import { UserAccount, roleLabels, PredictionRecord, MlConnectionState, JournalEntry, loadJournalEntries, mapObjects, trend, connectionLabel, riskScoreLabel, canAccessSection } from './moscollector-core';
 import { PageHead, Metric, PanelHead } from './moscollector-layout';
 import { PredictionTable } from './moscollector-predictions';
 
@@ -60,6 +60,8 @@ export function Dashboard({
   const eventItems = recentJournal.slice(0, 3);
   const recommendedPrediction = [...dashboardPredictions].sort((a, b) => b.probability - a.probability)[0];
   const criticalObject = visibleObjects.find((object) => object.predictionId === recommendedPrediction?.id);
+  const canOpenPredictions = canAccessSection(user, 'predictions');
+  const canOpenAnalytics = canAccessSection(user, 'analytics');
   return (
     <>
       <PageHead
@@ -89,7 +91,7 @@ export function Dashboard({
             <h3>{recommendedPrediction.object}</h3>
             <p className="critical-intelligence-lead">{recommendedPrediction.type}</p>
             <div className="critical-intelligence-meta"><span>Горизонт <strong>{recommendedPrediction.horizon}</strong></span><span>Объект <strong>{criticalObject?.id || 'не связан со схемой'}</strong></span></div>
-            <div className="critical-intelligence-actions"><button className="primary-btn" onClick={() => go('predictions', recommendedPrediction.id)}>Открыть прогноз <ChevronRight size={16} /></button><button className="secondary-btn" onClick={() => go(criticalObject ? 'map' : 'maintenance', criticalObject?.id)}>{criticalObject ? 'На карте' : 'Открыть заявки'}</button></div>
+            <div className="critical-intelligence-actions">{canOpenPredictions && <button className="primary-btn" onClick={() => go('predictions', recommendedPrediction.id)}>Открыть прогноз <ChevronRight size={16} /></button>}<button className={canOpenPredictions ? 'secondary-btn' : 'primary-btn'} onClick={() => go(criticalObject ? 'map' : 'maintenance', criticalObject?.id)}>{criticalObject ? 'На карте' : 'Открыть заявки'}</button></div>
           </> : <EmptyState title="Активных прогнозов нет" description="После получения нового сигнала приоритетный объект появится здесь." />}
           <div className="critical-intelligence-foot"><Activity size={15} /> Решение требует проверки диспетчером; оценка модели не подтверждает инцидент.</div>
         </section>
@@ -97,7 +99,7 @@ export function Dashboard({
           <PanelHead
             title="Динамика за 24 часа"
             subtitle="Тренд прогнозов и инцидентов"
-            link="Аналитика"
+            link={canOpenAnalytics ? 'Аналитика' : undefined}
             onClick={() => go('analytics')}
           />
           <div className="legend">
@@ -126,14 +128,17 @@ export function Dashboard({
       </div>
       <div className="dashboard-insights-grid">
         <section className="panel risk-panel">
-          <PanelHead title="Объекты высокого риска" subtitle="Отсортированы по вероятности" link="Все прогнозы" onClick={() => go('predictions')} />
+          <PanelHead title="Объекты высокого риска" subtitle="Отсортированы по вероятности" link={canOpenPredictions ? 'Все прогнозы' : undefined} onClick={() => go('predictions')} />
           <div className="risk-list">
-            {[...dashboardPredictions].sort((a, b) => b.probability - a.probability).slice(0, 4).map((p, i) => (
-              <button key={p.id} className="risk-row" onClick={() => go('predictions', p.id)}>
+            {[...dashboardPredictions].sort((a, b) => b.probability - a.probability).slice(0, 4).map((p, i) => {
+              const content = <>
                 <span className={`risk-rank r${i + 1}`}>{i + 1}</span><span className="risk-main"><strong>{p.object}</strong><small>{p.type}</small></span>
-                <span className="risk-prob"><strong>{p.probability}%</strong><small>{p.horizon}</small></span><RiskBadge risk={p.risk} /><ChevronRight size={17} />
-              </button>
-            ))}
+                <span className="risk-prob"><strong>{p.probability}%</strong><small>{p.horizon}</small></span><RiskBadge risk={p.risk} />
+              </>;
+              return canOpenPredictions
+                ? <button key={p.id} className="risk-row" onClick={() => go('predictions', p.id)}>{content}<ChevronRight size={17} /></button>
+                : <div key={p.id} className="risk-row risk-row-static">{content}</div>;
+            })}
             {dashboardPredictions.length === 0 && <EmptyState title="Нет объектов высокого риска" description="Активные прогнозы появятся после обновления ленты." />}
           </div>
         </section>
@@ -172,10 +177,10 @@ export function Dashboard({
         <section className="panel latest-panel">
           <PanelHead
             title="Последние прогнозы"
-            link="Смотреть все"
+            link={canOpenPredictions ? 'Смотреть все' : undefined}
             onClick={() => go('predictions')}
           />
-          <PredictionTable rows={dashboardPredictions.slice(0, 4)} onRow={(id) => go('predictions', id)} />
+          <PredictionTable rows={dashboardPredictions.slice(0, 4)} onRow={canOpenPredictions ? (id) => go('predictions', id) : undefined} />
         </section>
       </div>
       <DashboardSupport
@@ -212,6 +217,8 @@ export function DashboardSupport({
   onlineSensorCount: number;
   sensorCount: number;
 }) {
+  const canOpenPredictions = canAccessSection(user, 'predictions');
+  const recommendedObject = recommendedPrediction ? mapObjects.find((object) => object.predictionId === recommendedPrediction.id) : undefined;
   return (
     <div className="dashboard-support-grid">
       <SectionCard title="Последние события" description={usingSnapshotFeed ? 'Срез активных сигналов' : 'События из подключённого контура'} className="dashboard-events-card">
@@ -221,12 +228,15 @@ export function DashboardSupport({
               <span className={`event-marker ${event.status === 'В работе' ? 'warning' : 'success'}`} />
               <span><strong>{event.decision} · {event.object}</strong><small>{event.type} · {event.date} · {event.dispatcher}</small></span>
             </div>
-          )) : dashboardPredictions.slice(0, 3).map((prediction) => (
-            <button className="dashboard-event" key={prediction.id} aria-label={`Открыть прогноз ${prediction.id}: ${prediction.object}, ${prediction.type}`} onClick={() => go('predictions', prediction.id)}>
+          )) : dashboardPredictions.slice(0, 3).map((prediction) => {
+            const content = <>
               <span className={`event-marker ${prediction.risk === 'Критический' ? 'danger' : 'warning'}`} />
               <span><strong>Сформирован прогноз · {prediction.object}</strong><small>{prediction.type} · {prediction.time} · {riskScoreLabel(prediction)} {prediction.probability}%</small></span>
-            </button>
-          ))}
+            </>;
+            return canOpenPredictions
+              ? <button className="dashboard-event" key={prediction.id} aria-label={`Открыть прогноз ${prediction.id}: ${prediction.object}, ${prediction.type}`} onClick={() => go('predictions', prediction.id)}>{content}</button>
+              : <div className="dashboard-event" key={prediction.id}>{content}</div>;
+          })}
           {dashboardPredictions.length === 0 && <EmptyState title="Событий пока нет" description="Новые сигналы появятся после обновления ленты." />}
         </div>
       </SectionCard>
@@ -237,7 +247,9 @@ export function DashboardSupport({
               <p>Проверьте связанные телеметрические сигналы и зафиксируйте решение с основанием.</p>
               <div><span>{riskScoreLabel(recommendedPrediction)}<strong>{recommendedPrediction.probability}%</strong></span><span>Горизонт<strong>{recommendedPrediction.horizon}</strong></span></div>
             </div>
-            <button className="primary-btn full" onClick={() => go('predictions', recommendedPrediction.id)}>Проверить прогноз <ChevronRight size={16} /></button>
+            {canOpenPredictions
+              ? <button className="primary-btn full" onClick={() => go('predictions', recommendedPrediction.id)}>Проверить прогноз <ChevronRight size={16} /></button>
+              : <button className="primary-btn full" onClick={() => go(recommendedObject ? 'map' : 'maintenance', recommendedObject?.id)}>{recommendedObject ? 'Показать объект на карте' : 'Открыть заявки'} <ChevronRight size={16} /></button>}
           </ObjectPreview>
         ) : <EmptyState title="Нет активных рекомендаций" description="Система сообщит о следующем значимом отклонении." />}
         <div className="dashboard-quick-actions">

@@ -4,7 +4,7 @@ import { parseAppPath, sectionPath, type Section } from '@/lib/app-routes';
 import { Activity, AlertTriangle, Bell, Check, Factory, LogOut, PanelLeftClose, PanelLeftOpen, RefreshCcw, SlidersHorizontal, Users } from 'lucide-react';
 import { LoadingSkeleton } from '@/components/ui/enterprise';
 import { fetchMlHealth, fetchMlPredictions, hasMlApiUrl, type MlHealth, type MlPredictionFeed } from '@/lib/ml-api';
-import { UserRole, UserAccount, roleLabels, themeStorageKey, readNotificationsStorageKey, deploymentBasePath, deploymentPath, storeCurrentUser, loadCurrentUser, nav, roleSections, MlConnectionState, predictions, equipment, riskScoreLabel } from './moscollector-core';
+import { UserRole, UserAccount, roleLabels, themeStorageKey, readNotificationsStorageKey, deploymentBasePath, deploymentPath, storeCurrentUser, loadCurrentUser, nav, roleSections, MlConnectionState, predictions, equipment, mapObjects, riskScoreLabel, canAccessSection } from './moscollector-core';
 import { NavButton, Header } from './moscollector-layout';
 import { GlobalCommandPalette } from './moscollector-command-palette';
 import { NotificationCenter } from './moscollector-notifications';
@@ -47,11 +47,11 @@ export default function MoscollectorApp() {
 
   useEffect(() => {
     try { setSidebarCollapsed(window.localStorage.getItem('moscollector-sidebar-collapsed') === 'true'); }
-    catch { /* Keep the full navigation when storage is unavailable. */ }
+    catch {  }
   }, []);
   const toggleSidebar = () => setSidebarCollapsed((current) => {
     const next = !current;
-    try { window.localStorage.setItem('moscollector-sidebar-collapsed', String(next)); } catch { /* Session state still works. */ }
+    try { window.localStorage.setItem('moscollector-sidebar-collapsed', String(next)); } catch {  }
     return next;
   });
 
@@ -62,7 +62,7 @@ export default function MoscollectorApp() {
       const settings = JSON.parse(stored) as { refreshInterval?: string; criticalNotifications?: boolean };
       if (['0.5', '1', '5', '15', 'manual'].includes(settings.refreshInterval || '')) setRefreshInterval(settings.refreshInterval!);
       if (typeof settings.criticalNotifications === 'boolean') setCriticalNotifications(settings.criticalNotifications);
-    } catch { /* Keep default preferences. */ }
+    } catch {  }
   }, []);
 
   useEffect(() => {
@@ -207,8 +207,8 @@ export default function MoscollectorApp() {
         ...nav
           .filter((item) => !currentUser || currentUser.role === 'manager' || roleSections[currentUser.role].includes(item.id))
           .map((item) => ({ id: item.id, title: item.label, description: `Открыть раздел «${item.label.toLowerCase()}»`, group: 'Разделы', icon: item.icon, action: () => go(item.id) })),
-        ...activePredictions.slice(0, 8).map((item) => ({ id: `prediction-${item.id}`, title: item.object, description: `${item.id} · ${item.type} · ${riskScoreLabel(item)} ${item.probability}%`, group: 'Прогнозы', icon: AlertTriangle, action: () => go('predictions', item.id) })),
-        ...equipment.map((item) => ({ id: `equipment-${item.id}`, title: item.object, description: `${item.id} · ${item.type}`, group: 'Оборудование', icon: Factory, action: () => go('equipment', item.id) })),
+        ...(canAccessSection(currentUser, 'predictions') ? activePredictions.slice(0, 8) : []).map((item) => ({ id: `prediction-${item.id}`, title: item.object, description: `${item.id} · ${item.type} · ${riskScoreLabel(item)} ${item.probability}%`, group: 'Прогнозы', icon: AlertTriangle, action: () => go('predictions', item.id) })),
+        ...(canAccessSection(currentUser, 'equipment') ? equipment : []).map((item) => ({ id: `equipment-${item.id}`, title: item.object, description: `${item.id} · ${item.type}`, group: 'Оборудование', icon: Factory, action: () => go('equipment', item.id) })),
       ];
   const priorityNotifications = (criticalNotifications ? activePredictions : [])
     .filter((item) => item.risk === 'Критический' || item.risk === 'Высокий')
@@ -234,12 +234,12 @@ export default function MoscollectorApp() {
   const markNotificationRead = (id: string) => {
     const next = [...new Set([...readNotificationIds, id])];
     setReadNotificationIds(next);
-    try { window.localStorage.setItem(readNotificationsStorageKey, JSON.stringify(next)); } catch { /* session state remains usable */ }
+    try { window.localStorage.setItem(readNotificationsStorageKey, JSON.stringify(next)); } catch {  }
   };
   const markAllNotificationsRead = () => {
     const next = notificationItems.map((item) => item.id);
     setReadNotificationIds(next);
-    try { window.localStorage.setItem(readNotificationsStorageKey, JSON.stringify(next)); } catch { /* session state remains usable */ }
+    try { window.localStorage.setItem(readNotificationsStorageKey, JSON.stringify(next)); } catch {  }
   };
   if (authLoading) return <div className="auth-loading" role="status" aria-live="polite"><LoadingSkeleton rows={3} /><span>Проверяем сессию…</span></div>;
   if (!currentUser)
@@ -282,6 +282,14 @@ export default function MoscollectorApp() {
             window.history.pushState({}, '', deploymentPath('/login/'));
           }}
         />
+        {toast && (
+          <div className="toast">
+            <span>
+              <Check size={16} />
+            </span>
+            {toast}
+          </div>
+        )}
         <GlobalCommandPalette open={paletteOpen} commands={commandItems} onClose={() => setPaletteOpen(false)} />
         <NotificationCenter
           open={notificationsOpen}
@@ -293,8 +301,6 @@ export default function MoscollectorApp() {
             markNotificationRead(id);
             setNotificationsOpen(false);
             if (id === 'ml-api') notify('Проверьте доступность ML API и конфигурацию моделей');
-            else if (id !== 'system-ok' && activePredictions.some((item) => item.id === id)) go('predictions', id);
-            else if (id !== 'system-ok') notify('Прогноз уже не доступен в текущей ленте; откройте раздел «Прогнозы»');
           }}
         />
       </>
@@ -440,6 +446,10 @@ export default function MoscollectorApp() {
           markNotificationRead(id);
           setNotificationsOpen(false);
           if (id === 'ml-api') notify('Проверьте доступность ML API и конфигурацию моделей');
+          else if (id !== 'system-ok' && !canAccessSection(currentUser, 'predictions')) {
+            const object = mapObjects.find((item) => item.predictionId === id);
+            if (object) go('map', object.id);
+          }
           else if (id !== 'system-ok' && activePredictions.some((item) => item.id === id)) go('predictions', id);
           else if (id !== 'system-ok') notify('Прогноз уже не доступен в текущей ленте; откройте раздел «Прогнозы»');
         }}

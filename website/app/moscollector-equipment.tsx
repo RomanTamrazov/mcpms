@@ -7,6 +7,7 @@ import { EmptyState, LoadingSkeleton, SectionCard } from '@/components/ui/enterp
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { SentRequest, loadSentRequests, storeSentRequests, equipment, loadImportedEquipment, storeImportedEquipment, sensorData, riskClass, riskFromNumber, downloadFile } from './moscollector-core';
 import { PageHead, Metric, PanelHead } from './moscollector-layout';
+import { Select } from '@/components/ui/select';
 
 
 export function EquipmentPage({
@@ -131,7 +132,7 @@ export function EquipmentPage({
               placeholder="ID, объект или тип оборудования"
             />
           </label>
-          <select
+          <Select
             className="select-btn"
             value={state}
             onChange={(e) => setState(e.target.value)}
@@ -142,7 +143,7 @@ export function EquipmentPage({
             <option>Нестабильно</option>
             <option>Работает</option>
             <option>Исправно</option>
-          </select>
+          </Select>
         </div>
         <div className="table-scroll">
           <table>

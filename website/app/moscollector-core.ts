@@ -147,19 +147,16 @@ export function storeDispatcherAccounts(accounts: UserAccount[]) {
     window.localStorage.setItem(accountsStorageKey, JSON.stringify(accounts));
     window.localStorage.setItem(accountsStorageVersionKey, '4');
   } catch {
-    // Keep account management usable for the current session.
   }
 }
 
 
 
-// Browser-local role control. Production access requires a backend identity provider (LDAP/AD).
 export function storeCurrentUser(user: UserAccount | null) {
   try {
     if (user) window.localStorage.setItem(sessionStorageKey, user.id);
     else window.localStorage.removeItem(sessionStorageKey);
   } catch {
-    // Keep sign-in usable for the current session.
   }
 }
 
@@ -197,6 +194,11 @@ export const roleSections: Record<Exclude<UserRole, 'manager'>, Section[]> = {
   dispatcher: ['dashboard', 'map', 'predictions', 'incidents', 'equipment', 'maintenance', 'schedule', 'analytics'],
   technician: ['dashboard', 'map', 'equipment', 'maintenance', 'schedule'],
 };
+
+export function canAccessSection(user: Pick<UserAccount, 'role'> | null | undefined, section: Section) {
+  if (!user) return false;
+  return user.role === 'manager' || roleSections[user.role].includes(section);
+}
 
 
 
@@ -395,7 +397,6 @@ export function storeSentRequests(requests: SentRequest[]) {
       JSON.stringify(requests),
     );
   } catch {
-    // Keep the interaction usable even when browser storage is disabled.
   }
 }
 
@@ -419,7 +420,6 @@ export function storeArchivedRequests(requests: ArchivedRequest[]) {
       JSON.stringify(requests),
     );
   } catch {
-    // Keep the active workflow usable when browser storage is disabled.
   }
 }
 
@@ -527,7 +527,6 @@ export function storeJournalEntry(entry: JournalEntry) {
   try {
     window.localStorage.setItem(journalStorageKey, JSON.stringify(next));
   } catch {
-    // The decision remains visible for the current session.
   }
 }
 
@@ -603,7 +602,7 @@ export function loadImportedEquipment(): EquipmentImportRow[] {
 
 export function storeImportedEquipment(rows: EquipmentImportRow[]) {
   try { window.localStorage.setItem(importedEquipmentStorageKey, JSON.stringify(rows)); }
-  catch { /* The imported rows remain available until this tab closes. */ }
+  catch {  }
 }
 
 

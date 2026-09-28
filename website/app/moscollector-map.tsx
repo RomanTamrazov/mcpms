@@ -5,8 +5,9 @@ import type { MapObject } from './interactive-map';
 import { type Section } from '@/lib/app-routes';
 import { AlertTriangle, ChevronRight, Download, RefreshCcw, Search, Wrench } from 'lucide-react';
 import { EmptyState, FilterBar, ObjectPreview, RiskBadge } from '@/components/ui/enterprise';
-import { Risk, UserAccount, predictions, SentRequest, loadSentRequests, storeSentRequests, storeJournalEntry, equipment, mapObjects, downloadFile } from './moscollector-core';
+import { Risk, UserAccount, predictions, SentRequest, loadSentRequests, storeSentRequests, storeJournalEntry, equipment, mapObjects, downloadFile, canAccessSection } from './moscollector-core';
 import { PageHead } from './moscollector-layout';
+import { Select } from '@/components/ui/select';
 
 
 export const GeoMap = dynamic(() => import('./geo-map'), { ssr: false });
@@ -160,7 +161,7 @@ export function MapPage({
             placeholder="Объект, адрес или ID"
           />
         </label>
-        <select
+        <Select
           className="select-btn"
           value={system}
           onChange={(e) => setSystem(e.target.value)}
@@ -170,8 +171,8 @@ export function MapPage({
           {[...new Set(mapObjects.map((x) => x.system))].map((x) => (
             <option key={x}>{x}</option>
           ))}
-        </select>
-        <select
+        </Select>
+        <Select
           className="select-btn"
           value={incident}
           onChange={(e) => setIncident(e.target.value)}
@@ -181,8 +182,8 @@ export function MapPage({
           {[...new Set(mapObjects.map((x) => x.incident))].map((x) => (
             <option key={x}>{x}</option>
           ))}
-        </select>
-        <select
+        </Select>
+        <Select
           className="select-btn"
           value={risk}
           onChange={(e) => setRisk(e.target.value)}
@@ -193,8 +194,8 @@ export function MapPage({
           <option value="high">Высокий</option>
           <option value="medium">Средний</option>
           <option value="low">Низкий</option>
-        </select>
-        <select
+        </Select>
+        <Select
           className="select-btn"
           value={district}
           onChange={(e) => setDistrict(e.target.value)}
@@ -204,12 +205,12 @@ export function MapPage({
           {[...new Set(mapObjects.map((x) => x.district))].map((x) => (
             <option key={x}>{x}</option>
           ))}
-        </select>
+        </Select>
       </FilterBar>
       <div className="map-layout">
         <div className="real-map-wrap">
-          <GeoMap objects={filtered} selectedId={selected?.id} onSelect={setSelectedId} onPrediction={(id) => go('predictions', id)} onRequest={openOrCreateRequest} />
-          {filtered.length > 0 && <div className="geo-object-picker"><label htmlFor="geo-object-select">Выбранный объект</label><select id="geo-object-select" value={selected?.id || ''} onChange={(event) => setSelectedId(event.target.value)}>{filtered.map((object) => <option key={object.id} value={object.id}>{object.name}</option>)}</select></div>}
+          <GeoMap objects={filtered} selectedId={selected?.id} onSelect={setSelectedId} onPrediction={canAccessSection(user, 'predictions') ? (id) => go('predictions', id) : undefined} onRequest={openOrCreateRequest} />
+          {filtered.length > 0 && <div className="geo-object-picker"><label htmlFor="geo-object-select">Выбранный объект</label><Select id="geo-object-select" value={selected?.id || ''} onChange={(event) => setSelectedId(event.target.value)}>{filtered.map((object) => <option key={object.id} value={object.id}>{object.name}</option>)}</Select></div>}
           {filtered.length === 0 && (
             <div className="map-empty">
               <EmptyState title="Объекты не найдены" description="Измените критерии фильтра или сбросьте поиск." />
@@ -245,13 +246,15 @@ export function MapPage({
               </span>
             </div>
             <p className="object-equipment-type">Оборудование: {equipment.find((item) => item.object === predictions.find((prediction) => prediction.id === selected.predictionId)?.object)?.type || 'тип не передан в реестре'}</p>
-            <button
-              className="primary-btn full"
-              disabled={!selected.predictionId}
-              onClick={() => selected.predictionId && go('predictions', selected.predictionId)}
-            >
-              {selected.predictionId ? 'Открыть прогноз' : 'Активного прогноза нет'} <ChevronRight size={16} />
-            </button>
+            {canAccessSection(user, 'predictions') && (
+              <button
+                className="primary-btn full"
+                disabled={!selected.predictionId}
+                onClick={() => selected.predictionId && go('predictions', selected.predictionId)}
+              >
+                {selected.predictionId ? 'Открыть прогноз' : 'Активного прогноза нет'} <ChevronRight size={16} />
+              </button>
+            )}
             <button className="secondary-btn full" onClick={() => openOrCreateRequest(selected.id)}><Wrench size={16} /> Создать / открыть заявку</button>
           </div>
         </aside> : <aside className="object-card"><EmptyState title="Объект не выбран" description="Измените фильтры, чтобы увидеть карточку объекта." /></aside>}

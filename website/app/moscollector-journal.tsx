@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Download, Search } from 'lucide-react';
 import { JournalEntry, journalStatusClass, loadJournalEntries, downloadFile } from './moscollector-core';
 import { PageHead } from './moscollector-layout';
+import { Select } from '@/components/ui/select';
 
 export function Incidents({ notify }: { notify: (s: string) => void }) {
   const [query, setQuery] = useState('');
@@ -100,7 +101,7 @@ export function Incidents({ notify }: { notify: (s: string) => void }) {
               placeholder="Поиск по журналу"
             />
           </label>
-          <select
+          <Select
             className="select-btn"
             value={status}
             onChange={(e) => setStatus(e.target.value)}
@@ -111,7 +112,7 @@ export function Incidents({ notify }: { notify: (s: string) => void }) {
             <option>Закрыт</option>
             <option>Наблюдение</option>
             <option>Передан</option>
-          </select>
+          </Select>
         </div>
         <div className="table-scroll">
           <table>
