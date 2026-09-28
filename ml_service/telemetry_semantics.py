@@ -32,8 +32,6 @@ TECHNICAL_STATES = frozenset(
     }
 )
 
-# A journal alarm is a signal that needs verification, not a dispatcher-confirmed
-# incident. The groups below are the organiser's operational taxonomy.
 EMERGENCY_GROUPS = frozenset({"fire", "flood", "gas", "intrusion", "temperature"})
 CHANNEL_TERMS = {
     "РО": "рабочее освещение",

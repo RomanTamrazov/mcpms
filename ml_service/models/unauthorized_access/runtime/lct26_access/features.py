@@ -751,8 +751,6 @@ def build_context_daily(
             value = pl.when(pl.col("тип_датчика") == sensor).then(
                 pl.col("numeric_value")
             ).otherwise(None)
-            # Decimal sensor values are quantised before the mean so parallel
-            # reductions cannot change a last-bit rounding decision.
             scaled_value = pl.when(pl.col("тип_датчика") == sensor).then(
                 (pl.col("numeric_value") * 1_000_000).round(0).cast(pl.Int64)
             ).otherwise(None)

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { parseAppPath, sectionPath, type Section } from '@/lib/app-routes';
 import { Activity, AlertTriangle, Bell, Check, Factory, LogOut, PanelLeftClose, PanelLeftOpen, RefreshCcw, SlidersHorizontal, Users } from 'lucide-react';
 import { LoadingSkeleton } from '@/components/ui/enterprise';
@@ -9,17 +9,20 @@ import { NavButton, Header } from './moscollector-layout';
 import { GlobalCommandPalette } from './moscollector-command-palette';
 import { NotificationCenter } from './moscollector-notifications';
 import { Dashboard } from './moscollector-dashboard';
-import { MapPage } from './moscollector-map';
-import { Predictions, PredictionDetail } from './moscollector-predictions';
-import { Incidents } from './moscollector-journal';
-import { EquipmentPage, EquipmentDetail } from './moscollector-equipment';
-import { Maintenance } from './moscollector-maintenance';
-import { MaintenancePlan } from './moscollector-maintenance-plan';
-import { Analytics } from './moscollector-analytics';
-import { AdminPanel } from './moscollector-admin';
 import { Login } from './moscollector-auth';
 import { BrandIdentity } from './moscollector-brand';
 import './maintenance-plan.css';
+
+const MapPage = lazy(() => import('./moscollector-map').then((module) => ({ default: module.MapPage })));
+const Predictions = lazy(() => import('./moscollector-predictions').then((module) => ({ default: module.Predictions })));
+const PredictionDetail = lazy(() => import('./moscollector-predictions').then((module) => ({ default: module.PredictionDetail })));
+const Incidents = lazy(() => import('./moscollector-journal').then((module) => ({ default: module.Incidents })));
+const EquipmentPage = lazy(() => import('./moscollector-equipment').then((module) => ({ default: module.EquipmentPage })));
+const EquipmentDetail = lazy(() => import('./moscollector-equipment').then((module) => ({ default: module.EquipmentDetail })));
+const Maintenance = lazy(() => import('./moscollector-maintenance').then((module) => ({ default: module.Maintenance })));
+const MaintenancePlan = lazy(() => import('./moscollector-maintenance-plan').then((module) => ({ default: module.MaintenancePlan })));
+const Analytics = lazy(() => import('./moscollector-analytics').then((module) => ({ default: module.Analytics })));
+const AdminPanel = lazy(() => import('./moscollector-admin').then((module) => ({ default: module.AdminPanel })));
 
 
 export default function MoscollectorApp() {
@@ -265,23 +268,25 @@ export default function MoscollectorApp() {
   if (currentUser.role === 'manager') {
     return (
       <>
-        <AdminPanel
-          user={currentUser}
-          darkTheme={darkTheme}
-          onToggleTheme={toggleTheme}
-          mlConnection={mlConnection}
-          mlHealth={mlHealth}
-          notificationCount={unreadNotificationCount}
-          notificationsOpen={notificationsOpen}
-          onOpenSearch={() => setPaletteOpen(true)}
-          onToggleNotifications={() => setNotificationsOpen((current) => !current)}
-          onSettingsSaved={(settings) => { setRefreshInterval(settings.refreshInterval); setCriticalNotifications(settings.criticalNotifications); }}
-          onLogout={() => {
-            setCurrentUser(null);
-            storeCurrentUser(null);
-            window.history.pushState({}, '', deploymentPath('/login/'));
-          }}
-        />
+        <Suspense fallback={<LoadingSkeleton rows={3} />}>
+          <AdminPanel
+            user={currentUser}
+            darkTheme={darkTheme}
+            onToggleTheme={toggleTheme}
+            mlConnection={mlConnection}
+            mlHealth={mlHealth}
+            notificationCount={unreadNotificationCount}
+            notificationsOpen={notificationsOpen}
+            onOpenSearch={() => setPaletteOpen(true)}
+            onToggleNotifications={() => setNotificationsOpen((current) => !current)}
+            onSettingsSaved={(settings) => { setRefreshInterval(settings.refreshInterval); setCriticalNotifications(settings.criticalNotifications); }}
+            onLogout={() => {
+              setCurrentUser(null);
+              storeCurrentUser(null);
+              window.history.pushState({}, '', deploymentPath('/login/'));
+            }}
+          />
+        </Suspense>
         {toast && (
           <div className="toast">
             <span>
@@ -378,6 +383,7 @@ export default function MoscollectorApp() {
           notificationCount={unreadNotificationCount}
           notificationsOpen={notificationsOpen}
         />
+        <Suspense fallback={<LoadingSkeleton rows={4} />}>
         <div className="content">
           {section === 'dashboard' && (
             <Dashboard
@@ -419,6 +425,7 @@ export default function MoscollectorApp() {
           {section === 'schedule' && <MaintenancePlan />}
           {section === 'analytics' && <Analytics notify={notify} go={go} />}
         </div>
+        </Suspense>
       </main>
       {menuOpen && (
         <button

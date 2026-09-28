@@ -170,8 +170,6 @@ def predict_sites(
                 for row_index, value in enumerate(values):
                     contributions[row_index][feature] += float(value)
 
-    # Retain the zero-valued compatibility column without shipping or importing
-    # CatBoost.  The frozen champion has assigned it exactly zero weight.
     component_scores["cat_base"] = np.zeros(anchor.shape[0], dtype=float)
 
     probability = sum(

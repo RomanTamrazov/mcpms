@@ -1,3 +1,4 @@
+// ППР на 2026 год: названия объектов в исходном файле обезличены.
 export type PprScheduleRow = {
   object: string;
   month: string;
@@ -8,8 +9,6 @@ export type PprScheduleRow = {
   acceptance: string | null;
 };
 
-// Imported from the supplied 2026 PPR workbook. Object names are anonymised in
-// the source, so these rows intentionally are not joined to ML object IDs.
 export const pprSchedule: PprScheduleRow[] = [
   { object: 'Объект 1', month: 'Январь', sensors: 56, demount: '12.01.2026', delivery: 'до 9:00 13.01.2026', removal: '22.01.2026', acceptance: '27.01.2026' },
   { object: 'Объект 2', month: 'Январь', sensors: 13, demount: null, delivery: null, removal: null, acceptance: '28.01.2026' },

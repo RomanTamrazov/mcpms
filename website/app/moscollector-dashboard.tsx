@@ -53,7 +53,7 @@ export function Dashboard({
   const dashboardPredictions = activePredictions.filter((prediction) => user.district === 'Все округа' || prediction.district === user.district);
   const criticalCount = dashboardPredictions.filter((prediction) => prediction.risk === 'Критический').length;
   const highCount = dashboardPredictions.filter((prediction) => prediction.risk === 'Высокий').length;
-  const readyModels = mlHealth?.models.filter((model) => model.status === 'ready').length ?? 0;
+  const readyModels = mlHealth?.models.filter((model) => model.status === 'ready' && model.serving_ready !== false).length ?? 0;
   const visibleObjects = mapObjects.filter((object) => user.district === 'Все округа' || object.district === user.district);
   const sensorCount = visibleObjects.reduce((sum, object) => sum + object.sensors, 0);
   const onlineSensorCount = visibleObjects.reduce((sum, object) => sum + object.onlineSensors, 0);
@@ -160,8 +160,8 @@ export function Dashboard({
             <div className="model-status-grid">
               {mlHealth.models.map((model) => (
                 <div key={model.id} className="model-status-item">
-                  <i className={model.status === 'ready' ? 'ready' : model.status === 'error' ? 'failed' : 'waiting'} />
-                  <span><strong title={model.display_name}>{model.display_name}</strong><small>{model.status === 'ready' ? 'Готова к запросам' : model.status === 'not_configured' ? 'Пакет не настроен' : model.status === 'error' ? 'Ошибка загрузки' : 'Ограниченный режим'}</small></span>
+                  <i className={model.status === 'ready' && model.serving_ready !== false ? 'ready' : model.status === 'error' ? 'failed' : 'waiting'} />
+                  <span><strong title={model.display_name}>{model.display_name}</strong><small>{model.status === 'ready' && model.serving_ready === false ? 'Нужны актуальные витрины' : model.status === 'ready' ? 'Готова к запросам' : model.status === 'not_configured' ? 'Пакет не настроен' : model.status === 'error' ? 'Ошибка загрузки' : 'Ограниченный режим'}</small></span>
                 </div>
               ))}
             </div>

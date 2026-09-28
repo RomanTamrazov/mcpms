@@ -35,9 +35,7 @@ export function sectionPath(section: Section, detail?: string | null) {
   return `/${section}/${detail ? `${encodeURIComponent(detail)}/` : ''}`;
 }
 
-// These routes are exported as actual HTML pages for refresh/deep links on static hosting.
-// Unknown IDs still reach the client router through the hosting 404 fallback.
-export const demoStaticRoutes = [
+export const staticRoutes = [
   'login', 'admin', ...sections,
   ...['PR-2491', 'PR-2490', 'PR-2489', 'PR-2488', 'PR-2487'].map((id) => `predictions/${id}`),
   ...['EQ-1034', 'EQ-2088', 'EQ-1541', 'EQ-3102', 'EQ-912'].map((id) => `equipment/${id}`),

@@ -16,9 +16,7 @@ export function Maintenance({ notify, user, openRequestId, onSwitchRole }: { not
     try {
       setSent(loadSentRequests());
       setArchived(loadArchivedRequests());
-    } catch {
-      // The default list remains available if browser storage is disabled.
-    }
+    } catch {}
   }, []);
   useEffect(() => setOpenedRequest(openRequestId || null), [openRequestId]);
   useEffect(() => {
@@ -112,9 +110,7 @@ export function Maintenance({ notify, user, openRequestId, onSwitchRole }: { not
       );
       try {
         window.localStorage.setItem(journalStorageKey, JSON.stringify(nextEntries));
-      } catch {
-        // The archived request still contains the technician response.
-      }
+      } catch {}
     }
 
     notify(`Заявка ${request.requestId} ${status.toLowerCase()} и перенесена в архив`);

@@ -364,11 +364,11 @@ export function AdminPanel({
             <div className="integration-list">
               <div><span><i className="source-ok" />СМВУ</span><b>Поток мониторинга · read-only</b></div>
               <div><span><i className="source-ok" />Реестр оборудования</span><b>Синхронизирован</b></div>
-              <div><span><i className="source-mock" />Журнал ОДС</span><b>Имитатор REST API</b></div>
-              <div><span><i className="source-mock" />Система заявок</span><b>Имитатор REST API</b></div>
+              <div><span><i className="source-mock" />Журнал ОДС</span><b>Локальный REST-контур</b></div>
+              <div><span><i className="source-mock" />Система заявок</span><b>Локальный REST-контур</b></div>
               <div><span><i className={mlConnection === 'online' ? 'source-ok' : 'source-wait'} />ML API</span><b>{connectionLabel(mlConnection)}</b></div>
               {mlHealth?.models.map((model) => (
-                <div key={model.id}><span><i className={model.status === 'ready' ? 'source-ok' : 'source-wait'} />{model.display_name}</span><b>{model.status === 'ready' ? 'Готова' : model.status === 'not_configured' ? 'Не настроена' : model.status === 'error' ? 'Ошибка загрузки' : 'Ограниченный режим'}</b></div>
+                <div key={model.id}><span><i className={model.status === 'ready' && model.serving_ready !== false ? 'source-ok' : 'source-wait'} />{model.display_name}</span><b>{model.status === 'ready' && model.serving_ready === false ? 'Нужны актуальные витрины' : model.status === 'ready' ? 'Готова' : model.status === 'not_configured' ? 'Не настроена' : model.status === 'error' ? 'Ошибка загрузки' : 'Ограниченный режим'}</b></div>
               ))}
             </div>
           </section>
